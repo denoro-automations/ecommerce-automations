@@ -12,7 +12,8 @@ const SUITES = [
 ];
 let fallos = 0;
 try {
-  process.stdout.write(execFileSync('node', [path.join(__dirname, 'comun', 'validar-workflows.js')], { encoding: 'utf8' }).split('\n').pop() + '\n');
+  const salida = execFileSync('node', [path.join(__dirname, 'comun', 'validar-workflows.js')], { encoding: 'utf8' });
+  process.stdout.write(salida.trim().split('\n').pop() + '\n\n');
 } catch (e) {
   process.stdout.write(`workflows: FALLA\n${e.stdout || ''}`);
   fallos += 1;
