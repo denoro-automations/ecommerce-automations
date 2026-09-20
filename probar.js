@@ -11,6 +11,12 @@ const SUITES = [
   ['facturas', 'test_facturas.js'],
 ];
 let fallos = 0;
+try {
+  process.stdout.write(execFileSync('node', [path.join(__dirname, 'comun', 'validar-workflows.js')], { encoding: 'utf8' }).split('\n').pop() + '\n');
+} catch (e) {
+  process.stdout.write(`workflows: FALLA\n${e.stdout || ''}`);
+  fallos += 1;
+}
 for (const [carpeta, fichero] of SUITES) {
   try {
     const salida = execFileSync('node', [path.join(__dirname, carpeta, 'test', fichero)], { encoding: 'utf8' });
