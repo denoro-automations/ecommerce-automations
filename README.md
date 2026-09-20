@@ -1,0 +1,60 @@
+# E-commerce automations · Denoro
+
+Five production-ready n8n automations for online shops. Each one ships with its workflow,
+a demo mode that runs without connecting anything, its own tests and its documentation
+(in Spanish, inside each folder).
+
+| Automation | What it does | Runs every |
+|---|---|---|
+| [AI product descriptions](fichas-producto/) | Turns a catalogue with no copy into SEO titles, meta descriptions and HTML descriptions, ready to import | Manual / weekly |
+| [Supplier stock sync](stock-proveedor/) | Syncs supplier feed stock into the shop, with safety brakes | 4 hours |
+| [Abandoned carts](carritos/) | Recovery sequence to the shopper, and measures what comes back | 30 minutes |
+| [Review monitoring](resenas/) | Instant alert on every negative review, plus a weekly digest | 2 hours / weekly |
+| [Invoices and delivery notes](facturas/) | Numbering, VAT breakdown, branded PDF, sent to the customer | 1 hour |
+
+## How they are built
+
+Every one follows the same pattern:
+
+- **One configuration block.** Everything a client needs to touch lives in the *Configuración*
+  node, commented. Nothing else in the workflow is meant to be edited.
+- **Configuration is validated up front.** A placeholder address, a missing CSS selector or an
+  impossible VAT rate stops the run with a message saying what to fix, instead of failing three
+  nodes later.
+- **Demo mode everywhere.** With `fuente: 'demo'` each workflow runs end to end with no shop
+  connected — useful for demos and for testing changes.
+- **Channels switch off by leaving them empty.** No `email_to`, no email. No `telegram_chat_id`,
+  no Telegram.
+- **Consistent branded emails.** Customer-facing mail (carts, invoices) is signed by the *shop*;
+  internal digests by Denoro.
+- **Failures are reported** through a shared error workflow, over email and Telegram.
+
+## The JSON is generated, not hand-edited
+
+Each Code node lives in `<automation>/src/*.js` and the workflow assembly in
+`<automation>/build.py`, so the logic is reviewable in diffs and testable outside n8n.
+
+```bash
+python3 construir.py     # rebuild the 5 workflows + the error workflow
+node probar.js           # run all test suites (479 assertions)
+```
+
+Tests run the node code outside n8n with a small harness that mimics `$input`, `$()` and
+`$getWorkflowStaticData`.
+
+## Install
+
+1. In n8n: **Workflows → Import from File**, pick a `workflow.json`.
+2. Import `comun/avisos-de-error.workflow.json` too and set it as the *Error workflow*.
+3. Edit the `CONFIG` block, pick credentials, and try it in `demo` mode first.
+
+PDF output (invoices) needs Gotenberg:
+
+```bash
+docker run -d -p 3000:3000 --name gotenberg gotenberg/gotenberg:8
+```
+
+## About
+
+Portfolio and working code by [Denoro Automations](https://denoro-automations.github.io/) —
+n8n automation and web scraping for online shops.

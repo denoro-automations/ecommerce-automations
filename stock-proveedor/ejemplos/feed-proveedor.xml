@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<productos>
+  <producto>
+    <sku>MES-01</sku>
+    <nombre><![CDATA[Mesa de comedor extensible]]></nombre>
+    <stock>4</stock>
+    <precio>289,00</precio>
+  </producto>
+  <producto>
+    <sku>EST-02</sku>
+    <nombre>Estantería de pared</nombre>
+    <stock>0</stock>
+    <precio>79,00</precio>
+  </producto>
+</productos>
