@@ -37,7 +37,7 @@ probar fuera de n8n y corregir en un sitio.
 
 ```bash
 python3 construir.py     # regenera los 5 workflows + el de avisos de error
-node probar.js           # pasa los tests de los 5 (479 comprobaciones)
+node probar.js           # valida los workflows y pasa los tests de los 5
 ```
 
 Los tests ejecutan el código de los nodos fuera de n8n con un arnés mínimo

@@ -12,6 +12,16 @@ a demo mode that runs without connecting anything, its own tests and its documen
 | [Review monitoring](resenas/) | Instant alert on every negative review, plus a weekly digest | 2 hours / weekly |
 | [Invoices and delivery notes](facturas/) | Numbering, VAT breakdown, branded PDF, sent to the customer | 1 hour |
 
+## What the output looks like
+
+Every image below is generated from a real run of the workflow in demo mode.
+
+| | |
+|---|---|
+| ![AI product descriptions](docs/portada-fichas.png) | ![Supplier stock sync](docs/portada-stock.png) |
+| ![Abandoned cart recovery](docs/portada-carritos.png) | ![Review monitoring](docs/portada-resenas.png) |
+| ![Automatic invoices](docs/portada-facturas.png) | ![A generated invoice](docs/factura-ejemplo.png) |
+
 ## How they are built
 
 Every one follows the same pattern:
@@ -36,7 +46,7 @@ Each Code node lives in `<automation>/src/*.js` and the workflow assembly in
 
 ```bash
 python3 construir.py     # rebuild the 5 workflows + the error workflow
-node probar.js           # run all test suites (479 assertions)
+node probar.js           # validate the workflows and run all test suites
 ```
 
 Tests run the node code outside n8n with a small harness that mimics `$input`, `$()` and
