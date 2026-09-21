@@ -12,7 +12,7 @@ const con = (...cambios) => [...REAL, ...cambios];
 let hechas = 0;
 const ok = (cond, msg) => { assert.ok(cond, msg); hechas++; };
 const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
-const cerca = (a, b, msg) => { assert.ok(Math.abs(a - b) < 0.02, `${msg}: ${a} vs ${b}`); hechas++; };
+const cerca = (a, b, msg) => { assert.ok(Math.abs(a - b) < 0.001, `${msg}: ${a} vs ${b}`); hechas++; };
 
 (async () => {
   // ---------- configuración ----------
@@ -49,7 +49,21 @@ const cerca = (a, b, msg) => { assert.ok(Math.abs(a - b) < 0.02, `${msg}: ${a} v
   ok(f1.lineas.some((l) => l.titulo === 'Gastos de envío'), 'el envío entra como línea');
 
   const f3 = d.facturas.find((f) => f.numero_pedido === 1003);
-  cerca(f3.total, 58.55, 'descuento aplicado');
+  cerca(f3.total, 58.55, 'descuento aplicado: el total es lo que pagó el cliente, al céntimo');
+  cerca(f3.lineas[0].importe, 38.7, 'el importe de la línea es precio × unidades, sin el descuento repartido');
+  cerca(f3.lineas.reduce((s, l) => s + l.importe, 0) - f3.descuento, f3.total, 'líneas − descuento = total');
+  // una batería de pedidos al azar: base + cuota tiene que dar siempre lo pagado, al céntimo
+  for (let k = 0; k < 200; k++) {
+    const lineasAzar = Array.from({ length: 1 + (k % 4) }, (_, i) => ({ titulo: 'x', unidades: 1 + ((k * 7 + i) % 5),
+      precio: Math.round((1 + ((k * 13 + i * 31) % 997) / 7) * 100) / 100, iva: [21, 10, 4][(k + i) % 3] }));
+    const bruto = lineasAzar.reduce((s, l) => s + l.precio * l.unidades, 0) + 4.95;
+    const desc = Math.round((k % 3 ? (k % 9) : 0) * 100) / 100;
+    const r = await runCode('numerar.js', { input: [{ json: { ...pedidos[0].json, id: 'azar-' + k, lineas: lineasAzar, descuento: desc } }], nodes: n, staticData: {} });
+    const f = r[0].json.facturas[0];
+    assert.strictEqual(Math.round(f.total * 100), Math.round((bruto - desc) * 100), `pedido ${k}: ${f.total} vs ${bruto - desc}`);
+    assert.strictEqual(Math.round((f.base + f.cuota) * 100), Math.round(f.total * 100), `pedido ${k}: base + cuota`);
+  }
+  hechas += 400;
   igual(f3.iva_por_tipo.length, 2, 'dos tipos de IVA en la misma factura');
   igual(f3.iva_por_tipo[0].tipo, 21);
   igual(f3.iva_por_tipo[1].tipo, 4);
