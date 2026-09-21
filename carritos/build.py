@@ -48,7 +48,7 @@ def carritos():
         node("Decidir a quién escribo", "n8n-nodes-base.code", 2, [1180, 100], {"jsCode": js("decidir.js")}),
         c.gate("¿Hay avisos que mandar?", "hay_envios", [1400, 100]),
         node("Preparar avisos", "n8n-nodes-base.code", 2, [1620, 0], {"jsCode": js("email-cliente.js")}),
-        c.email([1840, 0], name="Avisar al comprador"),
+        c.email([1840, 0], name="Avisar al comprador", tolerante=True),
         node("Recoger envíos", "n8n-nodes-base.code", 2, [2060, 0], {"jsCode": js("recoger-envios.js")}),
         node("Sin avisos", "n8n-nodes-base.code", 2, [1620, 220], {"jsCode": js("sin-envios.js")}),
         node("Resumen para la tienda", "n8n-nodes-base.code", 2, [2300, 100], {"jsCode": js("resumen.js")}),

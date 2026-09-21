@@ -61,7 +61,9 @@ def telegram_text(pos, name="Enviar a Telegram"):
     }, retryOnFail=True, maxTries=3, waitBetweenTries=5000)
 
 
-def email(pos, attachments="", name="Enviar email"):
+def email(pos, attachments="", name="Enviar email", tolerante=False):
+    """tolerante=True: si un envío falla (o no tiene destinatario) ese item sale con su error
+    y los demás siguen; el nodo siguiente es el que lo cuenta."""
     options = {"appendAttribution": False}
     if attachments:
         options["attachments"] = attachments
@@ -72,7 +74,8 @@ def email(pos, attachments="", name="Enviar email"):
         "emailFormat": "html",
         "html": "={{ $json.email_html }}",
         "options": options,
-    }, retryOnFail=True, maxTries=3, waitBetweenTries=5000)
+    }, retryOnFail=True, maxTries=3, waitBetweenTries=5000,
+        **({"onError": "continueRegularOutput", "alwaysOutputData": True} if tolerante else {}))
 
 
 def gate(name, field, pos):

@@ -45,6 +45,10 @@ for (const [carpeta, fichero] of ficheros) {
         if (!set.has(m[1])) aviso(`${n.name} usa $('${m[1]}') y ese nodo no está en el workflow`);
       }
     }
+    // los envíos a compradores/clientes no pueden tumbar la ejecución entera
+    if (n.type.endsWith('emailSend') && /comprador|cliente/i.test(n.name) && n.onError !== 'continueRegularOutput') {
+      aviso(`${n.name} envía a terceros y no es tolerante a fallos (onError)`);
+    }
     // expresiones {{ }} mal cerradas: solo dentro de cada cadena, no en las llaves del JSON
     const revisarCadenas = (v) => {
       if (typeof v === 'string') {

@@ -315,7 +315,9 @@
       },
       "retryOnFail": true,
       "maxTries": 3,
-      "waitBetweenTries": 5000
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
     },
     {
       "id": "4416aece-365e-52c6-a81f-bf4fd181e00b",

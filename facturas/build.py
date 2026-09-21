@@ -61,7 +61,7 @@ def facturas():
                         "timeout": 60000}},
             onError="continueRegularOutput", alwaysOutputData=True),
         node("Preparar envío", "n8n-nodes-base.code", 2, [2060, 0], {"jsCode": js("preparar-envio.js")}),
-        c.email([2280, 0], attachments="factura", name="Enviar factura al cliente"),
+        c.email([2280, 0], attachments="factura", name="Enviar factura al cliente", tolerante=True),
         node("Recoger facturas", "n8n-nodes-base.code", 2, [2500, 0], {"jsCode": js("recoger-facturas.js")}),
         node("Sin facturas", "n8n-nodes-base.code", 2, [1620, 240], {"jsCode": js("sin-facturas.js")}),
         node("Registro y resumen", "n8n-nodes-base.code", 2, [2740, 120], {"jsCode": js("registro.js")}),
