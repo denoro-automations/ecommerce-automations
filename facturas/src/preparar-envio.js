@@ -6,6 +6,8 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
 const VERDE = '#235b54'; const TINTA = '#35322c'; const SUAVE = '#6e6a61'; const REGLA = '#e7e4dc'; const PAPEL = '#f4f3ef';
 const dinero = (n, m) => `${Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${m === 'EUR' ? '€' : m}`;
 
+const demo = d.fuente === 'demo' && Boolean(d.email_to);
+
 return docs.map((doc, i) => {
   const f = doc.json;
   const salida = pdfs[i] || {};
@@ -35,8 +37,11 @@ ${esc(d.emisor.nombre)} · NIF ${esc(d.emisor.nif)} · ${esc(d.emisor.cp_poblaci
 </td></tr></table></td></tr></table></body></html>`;
 
   return {
-    json: { ...f, con_pdf: Boolean(pdf), email_to: f.enviar ? f.cliente.email : '', email_from: d.email_from,
-      asunto: `${d.emisor.nombre} · Factura ${f.numero}`, email_html },
+    json: { ...f, con_pdf: Boolean(pdf),
+      // En modo demo los clientes son inventados: la factura te llega a ti, con el destinatario en el asunto.
+      email_to: f.enviar ? (demo ? d.email_to : f.cliente.email) : '',
+      email_from: d.email_from,
+      asunto: `${demo ? `[Demo → ${f.cliente.email}] ` : ''}${d.emisor.nombre} · Factura ${f.numero}`, email_html },
     binary: { factura: adjunto },
   };
 });

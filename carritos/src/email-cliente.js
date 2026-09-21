@@ -44,11 +44,13 @@ Para dejar de recibirlos, escribe a <a href="mailto:${esc(d.email_bajas)}" style
 </div>
 </td></tr></table></td></tr></table></body></html>`;
 
+  // En modo demo los compradores son inventados: el aviso te llega a ti, con el destinatario en el asunto.
+  const demo = d.fuente === 'demo' && d.email_to;
   return { json: {
     ...c,
-    email_to: c.email,
+    email_to: demo ? d.email_to : c.email,
     email_from: d.email_from,
-    asunto: c.asunto,
+    asunto: demo ? `[Demo → ${c.email}] ${c.asunto}` : c.asunto,
     email_html,
   } };
 });

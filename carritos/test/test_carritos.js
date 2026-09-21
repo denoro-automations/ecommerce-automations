@@ -61,7 +61,12 @@ const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
   // ---------- envío y estado ----------
   const prep = await runCode('email-cliente.js', { input: dec, nodes: { ...n, 'Decidir a quién escribo': dec } });
   igual(prep.length, 3);
-  ok(prep[0].json.email_to === 'carla@ejemplo.test' && prep[0].json.email_from === 'hola@tienda.test');
+  ok(prep[0].json.email_to === 'dueno@tienda.test' && prep[0].json.asunto.startsWith('[Demo → carla@ejemplo.test]'),
+    'en modo demo el aviso llega al dueño, con el comprador en el asunto');
+  const decReal = [{ json: { ...dec[0].json, fuente: 'shopify' } }];
+  const prepReal = await runCode('email-cliente.js', { input: decReal, nodes: { ...n, 'Decidir a quién escribo': decReal } });
+  ok(prepReal[0].json.email_to === 'carla@ejemplo.test' && prepReal[0].json.email_from === 'hola@tienda.test'
+    && !prepReal[0].json.asunto.includes('Demo'), 'fuera de demo el aviso va al comprador');
   ok(prep[0].json.email_html.includes('VUELVE10'), 'el cupón sale en el email del tercer aviso');
   ok(prep[0].json.email_html.includes('bajas@tienda.test'), 'el pie lleva la dirección de baja');
   ok(prep[0].json.email_html.includes('Mesa auxiliar') && prep[0].json.email_html.includes('245,00 €'),

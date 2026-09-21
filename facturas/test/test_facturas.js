@@ -134,6 +134,15 @@ const cerca = (a, b, msg) => { assert.ok(Math.abs(a - b) < 0.02, `${msg}: ${a} v
   ok(envio[4].binary.factura.fileName.endsWith('.html'), 'y se adjunta el HTML en su lugar');
   const marta = envio.find((e) => e.json.cliente.nombre === 'Marta Gil');
   igual(marta.json.email_to, '', 'sin email del cliente no se manda a nadie');
+  ok(envio[0].json.email_to === 'dueno@tienda.test' && envio[0].json.asunto.startsWith('[Demo → '),
+    'en modo demo la factura llega al dueño');
+  const numReal = [{ json: { ...num[0].json, fuente: 'shopify' } }];
+  const envioReal = await runCode('preparar-envio.js', {
+    input: docs.map(() => ({ json: {}, binary: { factura_pdf: pdfFalso } })),
+    nodes: { ...n, 'Numerar facturas': numReal, 'Preparar documentos': docs },
+  });
+  ok(envioReal[0].json.email_to === envioReal[0].json.cliente.email && !envioReal[0].json.asunto.startsWith('[Demo'),
+    'fuera de demo la factura va al cliente');
   ok(envio[0].json.email_html.includes('Tienda Demo, S.L.'), 'el email lo firma la tienda');
   ok(envio[0].json.asunto.includes('Factura F'));
 
