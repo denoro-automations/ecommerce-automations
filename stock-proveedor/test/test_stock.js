@@ -99,7 +99,7 @@ const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
   const estricto = { 'Configuración': await runCode('config.js', { replace: con(EN_VIVO, ['max_cambios_pct: 40', 'max_cambios_pct: 30']) }) };
   const dem = await runCode('comparar.js', { input: juntos, nodes: estricto, staticData: {} });
   igual(dem[0].json.bloqueado, true);
-  ok(dem[0].json.motivos[0].includes('38.9 %'), 'dice exactamente cuánto se pasa');
+  ok(dem[0].json.motivos[0].includes('38,9 %'), 'dice exactamente cuánto se pasa');
 
   const vaciado = JSON.parse(JSON.stringify(feed)).map((f) => ({ json: { ...f.json, stock: 0 } }));
   const cero = await runCode('comparar.js', { input: [...vaciado, ...tienda], nodes: vivo, staticData: {} });

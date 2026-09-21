@@ -10,6 +10,7 @@ const h3 = (t) => `<h3 style="font-family:Georgia,'Times New Roman',serif;font-s
 const th = (t, der) => `<th align="${der ? 'right' : 'left'}" style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:${SUAVE};border-bottom:1px solid ${REGLA};padding:6px 0;font-weight:normal">${t}</th>`;
 const td = (t, der) => `<td align="${der ? 'right' : 'left'}" style="font-size:13px;color:${TINTA};border-bottom:1px solid ${REGLA};padding:8px 0">${t}</td>`;
 const cifra = (n, t, color) => `<td width="25%" style="padding:0 8px"><div style="font-family:Georgia,serif;font-size:30px;color:${color || VERDE};line-height:1">${n}</div><div style="font-size:12px;color:${SUAVE};padding-top:2px">${t}</div></td>`;
+const es = (n) => String(n).replace('.', ',');
 const dinero = (n) => `${Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
 const ETIQUETA = { agotado: 'se agota', repuesto: 'vuelve a haber', ajuste: 'ajuste' };
@@ -18,7 +19,7 @@ const filas = c.cambios.slice(0, 15).map((x) => `<tr>${td(esc(x.sku))}${td(esc(x
   td(`<span style="color:${x.tipo === 'agotado' ? ALERTA : (x.tipo === 'repuesto' ? OK : SUAVE)}">${ETIQUETA[x.tipo]}</span>`, 1) + '</tr>').join('');
 const filasPrecio = c.precios.slice(0, 10).map((x) => `<tr>${td(esc(x.sku))}${td(esc(x.titulo))}` +
   td(`${dinero(x.antes)} → ${dinero(x.despues)}`, 1) +
-  td(`<span style="color:${x.variacion_pct > 0 ? ALERTA : OK}">${x.variacion_pct > 0 ? '+' : ''}${x.variacion_pct} %</span>`, 1) + '</tr>').join('');
+  td(`<span style="color:${x.variacion_pct > 0 ? ALERTA : OK}">${x.variacion_pct > 0 ? '+' : '−'}${es(Math.abs(x.variacion_pct))} %</span>`, 1) + '</tr>').join('');
 
 const aviso = (texto, color) => `<div style="border-left:3px solid ${color};background:${color === ALERTA ? '#f8eae7' : '#e9f0ea'};padding:12px 14px;border-radius:0 8px 8px 0;font-size:14px;color:${TINTA};margin:4px 0 16px">${texto}</div>`;
 
@@ -37,7 +38,7 @@ if (c.bloqueado) {
 
 const cuerpo = `${cabecera}
 <table width="100%" cellspacing="0" style="margin:4px 0 8px"><tr>
-${cifra(r.cambios, 'cambios de stock')}${cifra(r.agotados, 'se agotan', r.agotados ? ALERTA : null)}${cifra(r.repuestos, 'vuelven a haber')}${cifra(`${r.pct_catalogo} %`, 'del catálogo')}
+${cifra(r.cambios, 'cambios de stock')}${cifra(r.agotados, 'se agotan', r.agotados ? ALERTA : null)}${cifra(r.repuestos, 'vuelven a haber')}${cifra(`${es(r.pct_catalogo)} %`, 'del catálogo')}
 </tr></table>
 ${c.cambios.length ? `${h3('Stock')}
 <table width="100%" cellspacing="0" style="border-collapse:collapse"><tr>${th('Ref.')}${th('Producto')}${th('Stock', 1)}${th('', 1)}</tr>${filas}</table>
@@ -64,7 +65,7 @@ ${cuerpo}
 const estado = c.bloqueado ? '⛔' : (c.cambios.length ? '🔄' : '✅');
 const telegram = `${estado} <b>Stock · ${c.tienda}</b>\n` +
   (c.bloqueado ? `<b>Bloqueado:</b> ${c.motivos[0]}\n` : '') +
-  `<b>Cambios:</b> ${r.cambios} (${r.pct_catalogo} % del catálogo)\n` +
+  `<b>Cambios:</b> ${r.cambios} (${es(r.pct_catalogo)} % del catálogo)\n` +
   `<b>Se agotan:</b> ${r.agotados} · <b>Vuelven:</b> ${r.repuestos}\n` +
   (r.cambios_precio ? `<b>Precios del proveedor:</b> ${r.cambios_precio} cambios\n` : '') +
   (c.bloqueado || c.modo_prueba ? '<i>No se ha tocado la tienda.</i>'

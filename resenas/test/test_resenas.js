@@ -131,7 +131,9 @@ const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
   ok(rj.email_html.includes('Reparto de estrellas') && rj.email_html.includes('De qué se queja la gente'));
   ok(rj.email_html.includes('Plazos de envío'));
   ok(rj.email_html.includes('#235b54') && rj.email_html.includes('Denoro Automations'));
-  ok(rj.asunto.includes('media 3.4'));
+  ok(rj.asunto.includes('media 3,4'), 'coma decimal en español');
+  ok(rj.email_html.includes('Para contestar') && rj.email_html.includes('Lucía'), 'saca las peores reseñas para contestarlas');
+  ok(!/>3\.4</.test(rj.email_html), 'sin punto decimal en el email');
   ok(rj.telegram.includes('Plazos de envío'));
   const vacia = await runCode('resumen-semanal.js', {
     input: [{ json: { ...a, resumen: { ...a.resumen, total_semana: 0, media: null, negativas: 0, positivas: 0, temas: [], estrellas: a.resumen.estrellas.map((e) => ({ ...e, total: 0 })), por_sitio: {}, tendencia: null }, peores: [], mejores: [] } }],

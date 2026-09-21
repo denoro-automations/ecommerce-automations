@@ -60,15 +60,16 @@ const descatalogados = tienda.filter((t) => !enFeed.has(t.sku))
 // ---- frenos de seguridad ----
 const motivos = [];
 const pct = (n) => Math.round((n / tienda.length) * 1000) / 10;
+const es = (n) => String(n).replace('.', ',');   // 38.9 -> "38,9" en los mensajes
 const agotados = cambios.filter((c) => c.tipo === 'agotado').length;
 if (feed.length < cfg.min_referencias) {
   motivos.push(`el feed trae ${feed.length} referencias y el mínimo esperado es ${cfg.min_referencias}: parece incompleto`);
 }
 if (pct(cambios.length) > cfg.max_cambios_pct) {
-  motivos.push(`cambiaría el ${pct(cambios.length)} % del catálogo (el tope es ${cfg.max_cambios_pct} %)`);
+  motivos.push(`cambiaría el ${es(pct(cambios.length))} % del catálogo (el tope es ${cfg.max_cambios_pct} %)`);
 }
 if (pct(agotados) > cfg.max_agotados_pct) {
-  motivos.push(`dejaría agotado el ${pct(agotados)} % del catálogo (el tope es ${cfg.max_agotados_pct} %)`);
+  motivos.push(`dejaría agotado el ${es(pct(agotados))} % del catálogo (el tope es ${cfg.max_agotados_pct} %)`);
 }
 const bloqueado = motivos.length > 0;
 // Un feed bloqueado no sirve de referencia de precios: no se guarda como foto buena.
