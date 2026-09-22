@@ -7,8 +7,8 @@ de facturas en CSV.
 ## Qué resuelve
 
 Facturar a mano es la tarea que todo el mundo deja para el último día del trimestre. Automatizarla
-quita entre dos y cinco minutos por pedido y, sobre todo, quita los errores de numeración, que son
-los que dan problemas después.
+quita ese trabajo pedido a pedido y, sobre todo, los errores de numeración, que son los que dan
+problemas después.
 
 ## La numeración, que es lo delicado
 
@@ -18,7 +18,8 @@ los que dan problemas después.
 - Las facturas se emiten **en orden de fecha de pedido**, para que el número siga al tiempo.
 - Con `reiniciar_cada_anio` el contador vuelve a 1 en enero; sin él, la serie sigue.
 - Si el envío por email falla, **la factura ya está emitida**: aparece en el resumen como
-  "no salió" y se reintenta, pero no cambia de número (saltarse números es justo lo que no se debe hacer).
+  "no salió" y está en el CSV para reenviarla a mano, con el mismo número (saltarse números es justo
+  lo que no se debe hacer). No se reintenta sola.
 
 > No dupliques ni reimportes el workflow con facturas ya emitidas: el contador empezaría de cero
 > y saldrían números repetidos.
@@ -53,14 +54,18 @@ la factura se envía en HTML y el resumen lo avisa, antes que no mandar nada.
 
 Corre cada hora y también a mano con **Facturar ahora**.
 
-## Aviso
+## Aviso: Verifactu y asesoría
 
-Esto genera documentos válidos, pero no sustituye a una asesoría: el cliente es responsable de sus
-obligaciones fiscales, de los tipos que aplica y de conservar sus facturas.
+No es un software certificado Verifactu: no genera el registro de facturación, la huella encadenada
+ni el QR, ni envía nada a la AEAT. El sistema Verifactu será obligatorio desde el 1 de enero de 2027
+para quienes tributan por el Impuesto sobre Sociedades y desde el 1 de julio de 2027 para el resto;
+hasta entonces esto numera y documenta bien, y a partir de ahí hace falta encajarlo con un programa
+de facturación certificado o con la asesoría. Tampoco sustituye a una asesoría: el cliente es
+responsable de sus obligaciones fiscales, de los tipos que aplica y de conservar sus facturas.
 
 ## Desarrollo
 
 ```bash
 python3 facturas/build.py                  # regenera el workflow
-node facturas/test/test_facturas.js        # ~80 comprobaciones
+node facturas/test/test_facturas.js        # 481 comprobaciones
 ```

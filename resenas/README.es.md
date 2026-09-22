@@ -1,7 +1,7 @@
 # Vigilancia de reseñas
 
-Revisa cada dos horas las páginas donde hablan de la tienda, avisa **al momento** de cada reseña
-negativa y los lunes manda un resumen con la nota media, la tendencia y de qué se queja la gente.
+Revisa cada dos horas las reseñas de tu tienda WooCommerce o las páginas públicas de opiniones que lo
+permitan, avisa **el mismo día** de cada reseña negativa y los lunes manda un resumen con la nota media, la tendencia y de qué se queja la gente.
 
 ## Qué resuelve
 
@@ -31,28 +31,38 @@ Las reseñas ya vistas no se vuelven a avisar: el workflow guarda una huella cor
 
 | `fuente` | Qué hace |
 |---|---|
-| `demo` | 12 reseñas de ejemplo repartidas en el tiempo |
-| `web` | Descarga cada página de `sitios` y extrae las reseñas con los selectores CSS que le des |
+| `demo` | 12 reseñas de ejemplo repartidas en el tiempo, sin marcas de terceros |
+| `woocommerce` | Las reseñas aprobadas de tu tienda, por su API (`/wp-json/wc/v3/products/reviews`) con tu credencial de WooCommerce. Cada una va con el producto y el enlace a su ficha |
+| `web` | Páginas públicas de opiniones, cada una con los selectores CSS que le des |
 
-Cada sitio se define con su `url`, el selector del `bloque` de cada reseña y los de `texto`,
-`puntuacion`, `autor` y `fecha` (con su atributo, si la nota va en un `alt` o la fecha en un
+En modo `web`, cada sitio se define con su `url`, el selector del `bloque` de cada reseña y los de
+`texto`, `puntuacion`, `autor` y `fecha` (con su atributo, si la nota va en un `alt` o la fecha en un
 `datetime`). Se sacan con el inspector del navegador. Entiende `Valorado con 2 de 5 estrellas`,
 `2,0` y `★★☆☆☆`.
 
 Si la página cambia de maquetación, el workflow **falla con un aviso claro** en vez de quedarse
 callado diciendo que no hay reseñas.
 
-## Antes de vigilar un sitio
+## robots.txt: se comprueba antes de leer
 
-Conviene mirar el `robots.txt` y las condiciones de uso de cada página, y espaciar las
-descargas. El workflow se identifica con su propio `User-Agent` y respeta el ritmo de dos horas.
-Cuando el sitio tenga API oficial (Trustpilot, Google Business Profile), es mejor esa vía.
+En modo `web`, antes de descargar ninguna página el workflow lee el `robots.txt` de cada sitio y
+aplica sus reglas (las de su propio bot, `DenoroBot`, o las generales). Si un sitio no permite la
+lectura automática de esa página, **se para y dice qué sitio quitar**; si el `robots.txt` no se puede
+consultar (error del servidor o de red), también se para.
+
+- Trustpilot, por ejemplo, no la permite: para esas reseñas está su API oficial.
+- Las reseñas de Google Maps se cargan con JavaScript y así no se leen: para esas está la API de
+  Google Business Profile, que se puede añadir aparte.
+
+Además del `robots.txt`, conviene leer las condiciones de uso de cada web antes de vigilarla.
+En WooCommerce nunca se lee el email de quien escribió la reseña.
 
 ## Cómo se usa
 
 1. Importa `workflow.json` en n8n.
 2. Prueba con `fuente: 'demo'` y el botón **Probar ahora**.
-3. Rellena `sitios` con los selectores reales y pásalo a `fuente: 'web'`.
+3. Pásalo a `fuente: 'woocommerce'` (con `woo_url` y la credencial de WooCommerce en *Reseñas WooCommerce*)
+   o a `fuente: 'web'` con `sitios` y sus selectores reales.
 4. Elige credenciales en *Enviar email* y *Enviar a Telegram*.
 5. *Settings → Error workflow*: **Denoro — Avisos de error**.
 
@@ -60,5 +70,5 @@ Cuando el sitio tenga API oficial (Trustpilot, Google Business Profile), es mejo
 
 ```bash
 python3 resenas/build.py                # regenera el workflow
-node resenas/test/test_resenas.js       # ~60 comprobaciones
+node resenas/test/test_resenas.js       # 85 comprobaciones
 ```

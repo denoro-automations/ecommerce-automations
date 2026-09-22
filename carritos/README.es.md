@@ -5,9 +5,9 @@ siguiendo una secuencia configurable y lleva la cuenta de cuánto se recupera.
 
 ## Qué resuelve
 
-Entre el 60 % y el 80 % de los carritos de una tienda online no terminan en pedido. Una secuencia
-de dos o tres avisos recupera una parte, y es de las pocas automatizaciones cuyo retorno se puede
-medir en euros directamente: el resumen dice cuántos carritos volvieron y por cuánto.
+Muchos carritos de una tienda online se quedan a medias. Un aviso a tiempo puede traer de vuelta
+una parte, y es de las pocas automatizaciones cuyo resultado se mide en euros: el resumen dice
+cuántos carritos volvieron después de recibir el aviso y por cuánto.
 
 ## Cómo decide
 
@@ -63,5 +63,5 @@ al cliente a cambiar lo que ya tiene.
 
 ```bash
 python3 carritos/build.py                  # regenera el workflow
-node carritos/test/test_carritos.js        # ~60 comprobaciones
+node carritos/test/test_carritos.js        # 63 comprobaciones
 ```

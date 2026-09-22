@@ -1,4 +1,4 @@
-# Fichas de producto con IA
+# Fichas de producto en bloque
 
 Convierte un catálogo sin descripciones en fichas listas para publicar: título SEO,
 meta descripción, lista de características, descripción en HTML, palabras clave y
@@ -7,8 +7,8 @@ texto alternativo de imagen. Sale un CSV que se importa tal cual en la tienda.
 ## Qué resuelve
 
 Una tienda con cientos de referencias suele tener el mismo problema: productos dados de alta
-con el nombre del proveedor y poco más. Escribir las fichas a mano cuesta entre 10 y 20 minutos
-por producto. Esto lo hace en segundos y deja marcado lo que conviene repasar.
+con el nombre del proveedor y poco más. Esto escribe todas las fichas de una pasada a partir de los
+datos que ya tiene cada producto y deja marcado lo que conviene repasar.
 
 ## De dónde lee el catálogo
 
@@ -31,7 +31,9 @@ así que cuantas más traiga el catálogo, mejor queda la ficha. Hay un ejemplo 
   a la misma frase repetida.
 - **`openai`**: manda cada producto al modelo que elijas con instrucciones estrictas de no inventar
   datos. Necesita la credencial *OpenAi account* en el nodo **Pedir la ficha a la IA**.
-  Si una respuesta viene rota, ese producto se marca y el resto sigue.
+  Si una respuesta viene rota o la API devuelve un error, ese producto se marca con el motivo y el resto sigue.
+  Usa la clave de OpenAI del cliente, que paga su propio consumo. Los tests cubren este motor con respuestas
+  simuladas; con una clave real conviene probar primero con `max_productos` bajo.
 
 ## La revisión automática
 
@@ -75,5 +77,5 @@ El código de los nodos Code vive en `src/`; `workflow.json` se genera, no se ed
 
 ```bash
 python3 fichas-producto/build.py     # regenera el workflow
-node fichas-producto/test/test_fichas.js   # 200+ comprobaciones
+node fichas-producto/test/test_fichas.js   # 203 comprobaciones
 ```

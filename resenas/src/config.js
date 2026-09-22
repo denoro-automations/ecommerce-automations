@@ -7,7 +7,8 @@ const CONFIG = {
   // Con fuente = 'web': páginas públicas de opiniones, cada una con sus selectores CSS
   // (se sacan con el inspector del navegador: clic derecho → Inspeccionar).
   // Antes de leer cada página se comprueba su robots.txt: si no permite la lectura
-  // automática, el workflow se para y lo dice. Trustpilot y Google, por ejemplo, no la permiten.
+  // automática, el workflow se para y lo dice. Trustpilot, por ejemplo, no la permite.
+  // Las reseñas de Google Maps se cargan con JavaScript y así no se leen: para esas está la API de Google Business Profile.
   sitios: [
     // {
     //   nombre: 'Opiniones de mi web',

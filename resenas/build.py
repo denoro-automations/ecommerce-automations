@@ -40,7 +40,7 @@ def resenas():
             "de WooCommerce en el nodo *Reseñas WooCommerce*.\n"
             "3. **Páginas públicas de opiniones**: `fuente: 'web'` y rellena **sitios** con la URL y los "
             "selectores CSS. Antes de leerlas se comprueba su robots.txt: si no lo permiten, el workflow "
-            "se para y lo dice (Trustpilot y Google, por ejemplo, no lo permiten).\n"
+            "se para y lo dice (Trustpilot, por ejemplo, no lo permite).\n"
             "4. **Cada 2 horas** busca reseñas nuevas y avisa solo de las negativas. "
             "**Los lunes a las 9:00** manda el resumen de la semana.\n"
             "5. *Settings → Error workflow*: **Denoro — Avisos de error**."), w=560, h=400, color=5),

@@ -66,5 +66,5 @@ Corre cada 4 horas y también a mano con **Sincronizar ahora**.
 
 ```bash
 python3 stock-proveedor/build.py          # regenera el workflow
-node stock-proveedor/test/test_stock.js   # ~80 comprobaciones
+node stock-proveedor/test/test_stock.js   # 79 comprobaciones
 ```

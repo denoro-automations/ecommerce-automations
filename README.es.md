@@ -2,14 +2,17 @@
 
 Cinco automatizaciones de n8n listas para poner en marcha en una tienda online.
 Cada una trae su workflow, su modo de prueba sin conectar nada, sus tests y su documentación.
+Las otras dos del catálogo tienen su propio repositorio:
+[price-monitor](https://github.com/denoro-automations/price-monitor) y
+[weekly-report](https://github.com/denoro-automations/weekly-report).
 
 | Automatización | Qué hace | Cada |
 |---|---|---|
-| [Fichas de producto con IA](fichas-producto/) | Convierte un catálogo sin descripciones en títulos SEO, metas y fichas en HTML, listas para importar | A mano o los lunes |
-| [Stock del proveedor](stock-proveedor/) | Sincroniza las existencias del feed del proveedor con la tienda, con frenos de seguridad | 4 horas |
-| [Carritos abandonados](carritos/) | Secuencia de avisos al comprador y cuenta de lo recuperado | 30 minutos |
-| [Vigilancia de reseñas](resenas/) | Avisa al momento de cada reseña negativa y resume la semana | 2 horas / lunes |
-| [Facturas y albaranes](facturas/) | Numera, calcula el IVA, genera el PDF y lo manda al cliente | 1 hora |
+| [Fichas de producto en bloque](fichas-producto/) | Convierte un catálogo sin descripciones en títulos SEO, metas y fichas en HTML, listas para importar. Motor de plantilla gratis, u OpenAI con tu propia clave | A mano o los lunes |
+| [Stock del proveedor](stock-proveedor/) | Sincroniza las existencias del feed CSV o XML del proveedor con Shopify o WooCommerce, y se para sola si el feed llega roto | 4 horas |
+| [Carritos abandonados](carritos/) | Secuencia de avisos a quien dio su consentimiento, firmada por la tienda, y cuenta de lo recuperado | 30 minutos |
+| [Vigilancia de reseñas](resenas/) | Avisa el mismo día de cada reseña negativa nueva (reseñas de WooCommerce, o páginas públicas cuyo robots.txt lo permita) y resume la semana | 2 horas / lunes |
+| [Facturas y albaranes](facturas/) | Numera, calcula el IVA por tipos, genera el PDF, lo manda al cliente y deja el libro en CSV. No es software certificado Verifactu | 1 hora |
 
 ## Cómo están hechas
 
@@ -52,7 +55,7 @@ Los tests ejecutan el código de los nodos fuera de n8n con un arnés mínimo
 4. Elige las credenciales en los nodos de email, Telegram y tienda.
 5. Pruébala con `fuente: 'demo'` antes de apuntar a datos reales.
 
-Para las que generan PDF (facturas, informes) hace falta Gotenberg:
+Para el PDF de las facturas hace falta Gotenberg (si no está, la factura sale en HTML):
 
 ```bash
 docker run -d -p 3000:3000 --name gotenberg gotenberg/gotenberg:8
