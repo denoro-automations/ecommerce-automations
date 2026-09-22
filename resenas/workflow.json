@@ -11,9 +11,9 @@
         -340
       ],
       "parameters": {
-        "content": "## Vigilancia de reseñas · Denoro\n1. `fuente: 'demo'` para probarlo. Para vigilar de verdad, `fuente: 'web'` y rellena **sitios** con la URL y los selectores CSS de cada página de reseñas.\n2. Los selectores se sacan con el inspector del navegador. Si la página cambia de maquetación, el workflow falla con un aviso claro en vez de callarse.\n3. **Cada 2 horas** busca reseñas nuevas y avisa solo de las negativas. **Los lunes a las 9:00** manda el resumen de la semana.\n4. Respeta el robots.txt y las condiciones de cada sitio antes de vigilarlo.\n5. *Settings → Error workflow*: **Denoro — Avisos de error**.",
-        "width": 540,
-        "height": 360,
+        "content": "## Vigilancia de reseñas · Denoro\n1. `fuente: 'demo'` para probarlo.\n2. **Reseñas de tu tienda WooCommerce**: `fuente: 'woocommerce'`, `woo_url` y la credencial de WooCommerce en el nodo *Reseñas WooCommerce*.\n3. **Páginas públicas de opiniones**: `fuente: 'web'` y rellena **sitios** con la URL y los selectores CSS. Antes de leerlas se comprueba su robots.txt: si no lo permiten, el workflow se para y lo dice (Trustpilot y Google, por ejemplo, no lo permiten).\n4. **Cada 2 horas** busca reseñas nuevas y avisa solo de las negativas. **Los lunes a las 9:00** manda el resumen de la semana.\n5. *Settings → Error workflow*: **Denoro — Avisos de error**.",
+        "width": 560,
+        "height": 400,
         "color": 5
       }
     },
@@ -129,7 +129,7 @@
         140
       ],
       "parameters": {
-        "jsCode": "// ============ CONFIGURACIÓN DEL CLIENTE (edita solo este bloque) ============\nconst CONFIG = {\n  tienda: 'Tienda Demo',\n  fuente: 'demo',                 // 'demo' o 'web'\n\n  // Con fuente = 'web': cada sitio con sus selectores CSS.\n  // Se sacan mirando la página con el inspector del navegador (clic derecho → Inspeccionar).\n  sitios: [\n    // {\n    //   nombre: 'Trustpilot',\n    //   url: 'https://es.trustpilot.com/review/tu-tienda.com',\n    //   bloque: 'article[data-service-review-card-paper]',\n    //   texto: 'p[data-service-review-text-typography]',\n    //   puntuacion: 'div[data-service-review-rating] img',\n    //   puntuacion_attr: 'alt',\n    //   autor: 'span[data-consumer-name-typography]',\n    //   fecha: 'time',\n    //   fecha_attr: 'datetime',\n    // },\n  ],\n\n  umbral_negativa: 3,             // puntuación (sobre 5) que se considera una queja\n  avisar_solo_nuevas: true,       // no repetir avisos de reseñas ya vistas\n  max_por_aviso: 10,              // tope de reseñas por aviso, para no mandar un tocho\n\n  email_to: 'cliente@ejemplo.com',\n  email_from: 'resenas@tu-dominio.com',\n  telegram_chat_id: 'TU_CHAT_ID',\n};\n// ============================================================================\nif (!['demo', 'web'].includes(CONFIG.fuente)) throw new Error(`fuente \"${CONFIG.fuente}\" no válida: usa demo o web`);\nif (CONFIG.fuente === 'web') {\n  if (!Array.isArray(CONFIG.sitios) || !CONFIG.sitios.length) {\n    throw new Error('Con fuente = web hay que definir al menos un sitio en \"sitios\"');\n  }\n  CONFIG.sitios.forEach((s, i) => {\n    for (const campo of ['nombre', 'url', 'bloque', 'texto']) {\n      if (!String(s[campo] || '').trim()) throw new Error(`Al sitio ${i + 1} le falta \"${campo}\"`);\n    }\n    if (!/^https?:\\/\\//i.test(s.url)) throw new Error(`La url del sitio \"${s.nombre}\" tiene que empezar por http:// o https://`);\n  });\n}\nif (!(CONFIG.umbral_negativa >= 1 && CONFIG.umbral_negativa <= 5)) {\n  throw new Error('umbral_negativa debe estar entre 1 y 5');\n}\nif (!(CONFIG.max_por_aviso >= 1 && CONFIG.max_por_aviso <= 100)) throw new Error('max_por_aviso debe estar entre 1 y 100');\nconst PLACEHOLDER = /ejemplo\\.com|tu-dominio|TU_CHAT_ID/i;\nfor (const k of ['email_to', 'email_from', 'telegram_chat_id']) {\n  if (PLACEHOLDER.test(String(CONFIG[k] || ''))) {\n    throw new Error(`Configura \"${k}\" en el nodo Configuración (ahora tiene un valor de ejemplo). Déjalo vacío ('') para desactivar ese canal.`);\n  }\n}\nif (CONFIG.telegram_chat_id && !/^-?\\d+$|^@\\w+$/.test(String(CONFIG.telegram_chat_id))) {\n  throw new Error('telegram_chat_id debe ser un número (p. ej. 123456789) o @canal');\n}\nif (!CONFIG.email_to && !CONFIG.telegram_chat_id) throw new Error('Configura al menos un canal: email_to o telegram_chat_id');\nif (CONFIG.email_to && !CONFIG.email_from) throw new Error('Falta email_from (la cuenta SMTP que envía)');\n\nconst modo = $input.first().json.modo === 'resumen' ? 'resumen' : 'vigilancia';\nreturn [{ json: {\n  ...CONFIG,\n  modo,\n  enviar_email: Boolean(CONFIG.email_to),\n  enviar_telegram: Boolean(CONFIG.telegram_chat_id),\n  ahora: new Date().toISOString(),\n} }];\n"
+        "jsCode": "// ============ CONFIGURACIÓN DEL CLIENTE (edita solo este bloque) ============\nconst CONFIG = {\n  tienda: 'Tienda Demo',\n  fuente: 'demo',                 // 'demo', 'woocommerce' o 'web'\n  woo_url: '',                    // si fuente = 'woocommerce': https://tu-tienda.com (usa su API con tu credencial)\n\n  // Con fuente = 'web': páginas públicas de opiniones, cada una con sus selectores CSS\n  // (se sacan con el inspector del navegador: clic derecho → Inspeccionar).\n  // Antes de leer cada página se comprueba su robots.txt: si no permite la lectura\n  // automática, el workflow se para y lo dice. Trustpilot y Google, por ejemplo, no la permiten.\n  sitios: [\n    // {\n    //   nombre: 'Opiniones de mi web',\n    //   url: 'https://mi-tienda.com/opiniones',\n    //   bloque: '.opinion',\n    //   texto: '.opinion-texto',\n    //   puntuacion: '.opinion-estrellas',\n    //   puntuacion_attr: 'data-nota',\n    //   autor: '.opinion-autor',\n    //   fecha: 'time',\n    //   fecha_attr: 'datetime',\n    // },\n  ],\n\n  umbral_negativa: 3,             // puntuación (sobre 5) que se considera una queja\n  avisar_solo_nuevas: true,       // no repetir avisos de reseñas ya vistas\n  max_por_aviso: 10,              // tope de reseñas por aviso, para no mandar un tocho\n\n  email_to: 'cliente@ejemplo.com',\n  email_from: 'resenas@tu-dominio.com',\n  telegram_chat_id: 'TU_CHAT_ID',\n};\n// ============================================================================\nif (!['demo', 'woocommerce', 'web'].includes(CONFIG.fuente)) throw new Error(`fuente \"${CONFIG.fuente}\" no válida: usa demo, woocommerce o web`);\nif (CONFIG.fuente === 'woocommerce' && !/^https?:\\/\\/[^/]+/i.test(String(CONFIG.woo_url || ''))) {\n  throw new Error('Con fuente = woocommerce hace falta woo_url: la dirección de la tienda (https://tu-tienda.com)');\n}\nif (CONFIG.fuente === 'web') {\n  if (!Array.isArray(CONFIG.sitios) || !CONFIG.sitios.length) {\n    throw new Error('Con fuente = web hay que definir al menos un sitio en \"sitios\"');\n  }\n  CONFIG.sitios.forEach((s, i) => {\n    for (const campo of ['nombre', 'url', 'bloque', 'texto']) {\n      if (!String(s[campo] || '').trim()) throw new Error(`Al sitio ${i + 1} le falta \"${campo}\"`);\n    }\n    if (!/^https?:\\/\\//i.test(s.url)) throw new Error(`La url del sitio \"${s.nombre}\" tiene que empezar por http:// o https://`);\n  });\n}\nif (!(CONFIG.umbral_negativa >= 1 && CONFIG.umbral_negativa <= 5)) {\n  throw new Error('umbral_negativa debe estar entre 1 y 5');\n}\nif (!(CONFIG.max_por_aviso >= 1 && CONFIG.max_por_aviso <= 100)) throw new Error('max_por_aviso debe estar entre 1 y 100');\nconst PLACEHOLDER = /ejemplo\\.com|tu-dominio|TU_CHAT_ID/i;\nfor (const k of ['email_to', 'email_from', 'telegram_chat_id']) {\n  if (PLACEHOLDER.test(String(CONFIG[k] || ''))) {\n    throw new Error(`Configura \"${k}\" en el nodo Configuración (ahora tiene un valor de ejemplo). Déjalo vacío ('') para desactivar ese canal.`);\n  }\n}\nif (CONFIG.telegram_chat_id && !/^-?\\d+$|^@\\w+$/.test(String(CONFIG.telegram_chat_id))) {\n  throw new Error('telegram_chat_id debe ser un número (p. ej. 123456789) o @canal');\n}\nif (!CONFIG.email_to && !CONFIG.telegram_chat_id) throw new Error('Configura al menos un canal: email_to o telegram_chat_id');\nif (CONFIG.email_to && !CONFIG.email_from) throw new Error('Falta email_from (la cuenta SMTP que envía)');\n\nconst modo = $input.first().json.modo === 'resumen' ? 'resumen' : 'vigilancia';\nreturn [{ json: {\n  ...CONFIG,\n  modo,\n  woo_url: String(CONFIG.woo_url || '').replace(/\\/+$/, ''),\n  enviar_email: Boolean(CONFIG.email_to),\n  enviar_telegram: Boolean(CONFIG.telegram_chat_id),\n  ahora: new Date().toISOString(),\n} }];\n"
       }
     },
     {
@@ -187,6 +187,28 @@
               },
               "renameOutput": true,
               "outputKey": "web"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.fuente }}",
+                    "rightValue": "woocommerce",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "woocommerce"
             }
           ]
         },
@@ -203,7 +225,7 @@
         20
       ],
       "parameters": {
-        "jsCode": "// Reseñas de ejemplo repartidas en el tiempo, con quejas repetidas sobre el mismo tema\n// (el plazo de envío), que es justo lo que el resumen tiene que hacer visible.\nconst cfg = $('Configuración').first().json;\nconst ahora = new Date(cfg.ahora).getTime();\nconst hace = (d) => new Date(ahora - d * 86400000).toISOString();\nconst R = (sitio, autor, puntuacion, dias, texto) => ({ json: {\n  sitio, autor, puntuacion, fecha: hace(dias), texto, url: 'https://resenas.test/' + autor.toLowerCase(),\n} });\n\nreturn [\n  R('Trustpilot', 'Marta', 5, 0.2, 'La mesa llegó perfecta y el montaje fue sencillo. Repetiré sin duda.'),\n  R('Trustpilot', 'Javier', 2, 0.5, 'El pedido tardó tres semanas en llegar. El producto bien, pero el plazo de envío es inaceptable.'),\n  R('Trustpilot', 'Lucía', 1, 1, 'Sigo esperando mi pedido. Nadie contesta al correo de atención al cliente.'),\n  R('Trustpilot', 'Pablo', 4, 2, 'Buena calidad por el precio. El envío tardó algo más de lo previsto.'),\n  R('Google', 'Ana', 5, 3, 'Atención impecable, me resolvieron una duda por teléfono en dos minutos.'),\n  R('Google', 'Sergio', 2, 4, 'Producto correcto pero el envío se retrasó una semana sin avisar.'),\n  R('Google', 'Elena', 5, 5, 'Encantada con la lámpara, se ve mejor que en las fotos.'),\n  R('Trustpilot', 'Rubén', 3, 6, 'Cumple. Nada especial, el embalaje llegó algo dañado.'),\n  R('Google', 'Nuria', 5, 8, 'Segunda compra y todo perfecto otra vez.'),\n  R('Trustpilot', 'Iván', 1, 9, 'Devolución imposible. Llevo dos semanas persiguiendo el reembolso.'),\n  R('Google', 'Carmen', 4, 11, 'Muy contenta con la compra, el envío fue rápido esta vez.'),\n  R('Trustpilot', 'Óscar', 5, 13, 'Excelente calidad de los materiales y buen precio.'),\n];\n"
+        "jsCode": "// Reseñas de ejemplo repartidas en el tiempo, con quejas repetidas sobre el mismo tema\n// (el plazo de envío), que es justo lo que el resumen tiene que hacer visible.\nconst cfg = $('Configuración').first().json;\nconst ahora = new Date(cfg.ahora).getTime();\nconst hace = (d) => new Date(ahora - d * 86400000).toISOString();\nconst R = (sitio, autor, puntuacion, dias, texto) => ({ json: {\n  sitio, autor, puntuacion, fecha: hace(dias), texto, url: 'https://tienda-demo.test/opiniones#' + autor.toLowerCase(),\n} });\n\nreturn [\n  R('Tu tienda', 'Marta', 5, 0.2, 'La mesa llegó perfecta y el montaje fue sencillo. Repetiré sin duda.'),\n  R('Tu tienda', 'Javier', 2, 0.5, 'El pedido tardó tres semanas en llegar. El producto bien, pero el plazo de envío es inaceptable.'),\n  R('Tu tienda', 'Lucía', 1, 1, 'Sigo esperando mi pedido. Nadie contesta al correo de atención al cliente.'),\n  R('Tu tienda', 'Pablo', 4, 2, 'Buena calidad por el precio. El envío tardó algo más de lo previsto.'),\n  R('Web de opiniones', 'Ana', 5, 3, 'Atención impecable, me resolvieron una duda por teléfono en dos minutos.'),\n  R('Web de opiniones', 'Sergio', 2, 4, 'Producto correcto pero el envío se retrasó una semana sin avisar.'),\n  R('Web de opiniones', 'Elena', 5, 5, 'Encantada con la lámpara, se ve mejor que en las fotos.'),\n  R('Tu tienda', 'Rubén', 3, 6, 'Cumple. Nada especial, el embalaje llegó algo dañado.'),\n  R('Web de opiniones', 'Nuria', 5, 8, 'Segunda compra y todo perfecto otra vez.'),\n  R('Tu tienda', 'Iván', 1, 9, 'Devolución imposible. Llevo dos semanas persiguiendo el reembolso.'),\n  R('Web de opiniones', 'Carmen', 4, 11, 'Muy contenta con la compra, el envío fue rápido esta vez.'),\n  R('Tu tienda', 'Óscar', 5, 13, 'Excelente calidad de los materiales y buen precio.'),\n];\n"
       }
     },
     {
@@ -216,7 +238,54 @@
         240
       ],
       "parameters": {
-        "jsCode": "// Un item por sitio a vigilar, con su URL y sus selectores.\nconst cfg = $('Configuración').first().json;\nreturn cfg.sitios.map((s) => ({ json: {\n  nombre: s.nombre,\n  url: s.url,\n  sel: {\n    bloque: s.bloque,\n    texto: s.texto,\n    puntuacion: s.puntuacion || '',\n    puntuacion_attr: s.puntuacion_attr || '',\n    autor: s.autor || '',\n    fecha: s.fecha || '',\n    fecha_attr: s.fecha_attr || '',\n  },\n} }));\n"
+        "jsCode": "// Un item por sitio a vigilar, con su URL y sus selectores.\nconst cfg = $('Configuración').first().json;\nreturn cfg.sitios.map((s) => ({ json: {\n  nombre: s.nombre,\n  url: s.url,\n  robots_url: s.url.match(/^https?:\\/\\/[^/?#]+/i)[0] + '/robots.txt',\n  ruta: (s.url.replace(/^https?:\\/\\/[^/?#]+/i, '') || '/'),\n  sel: {\n    bloque: s.bloque,\n    texto: s.texto,\n    puntuacion: s.puntuacion || '',\n    puntuacion_attr: s.puntuacion_attr || '',\n    autor: s.autor || '',\n    fecha: s.fecha || '',\n    fecha_attr: s.fecha_attr || '',\n  },\n} }));\n"
+      }
+    },
+    {
+      "id": "31c180d4-fcaa-5890-8c9e-eb5cfbf534a7",
+      "name": "Descargar robots.txt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1160,
+        240
+      ],
+      "parameters": {
+        "url": "={{ $json.robots_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; DenoroBot/1.0; +https://denoro-automations.github.io/)"
+            }
+          ]
+        }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "d5ddbf6b-71ca-5698-8e4e-d4e7089f9344",
+      "name": "Comprobar robots.txt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1380,
+        240
+      ],
+      "parameters": {
+        "jsCode": "// Antes de leer ninguna página, mira su robots.txt. Si no permite la lectura automática\n// a este bot (o a cualquiera), el workflow se para y dice qué sitio quitar de la lista.\nconst sitios = $('Preparar sitios').all().map((i) => i.json);\nconst respuestas = $input.all().map((i) => i.json || {});\nconst BOT = 'denorobot';\n\n// Convierte un patrón de robots.txt (con * y $) en una expresión regular.\nconst aRegex = (p) => {\n  const fin = p.endsWith('$');\n  const cuerpo = (fin ? p.slice(0, -1) : p).split('*').map((s) => s.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')).join('.*');\n  return new RegExp('^' + cuerpo + (fin ? '$' : ''));\n};\n\nconst permitido = (texto, ruta) => {\n  const grupos = [];\n  let actual = null;\n  let leyendoAgentes = false;\n  for (const bruta of String(texto || '').split(/\\r?\\n/)) {\n    const linea = bruta.replace(/#.*/, '').trim();\n    const m = linea.match(/^([A-Za-z-]+)\\s*:\\s*(.*)$/);\n    if (!m) continue;\n    const clave = m[1].toLowerCase();\n    const valor = m[2].trim();\n    if (clave === 'user-agent') {\n      if (!actual || !leyendoAgentes) { actual = { agentes: [], reglas: [] }; grupos.push(actual); }\n      actual.agentes.push(valor.toLowerCase());\n      leyendoAgentes = true;\n    } else if (clave === 'allow' || clave === 'disallow') {\n      leyendoAgentes = false;\n      if (actual && valor) actual.reglas.push({ permite: clave === 'allow', patron: valor });\n    } else {\n      leyendoAgentes = false;\n    }\n  }\n  // Manda el grupo que nombra a este bot; si no hay, el de \"*\".\n  const propios = grupos.filter((g) => g.agentes.some((a) => a !== '*' && BOT.includes(a)));\n  const aplicables = propios.length ? propios : grupos.filter((g) => g.agentes.includes('*'));\n  let mejor = null;\n  for (const r of aplicables.flatMap((g) => g.reglas)) {\n    if (!aRegex(r.patron).test(ruta)) continue;\n    // La regla más específica (más larga) gana; en empate, gana la que permite.\n    if (!mejor || r.patron.length > mejor.patron.length || (r.patron.length === mejor.patron.length && r.permite)) mejor = r;\n  }\n  return mejor ? mejor.permite : true;\n};\n\nconst bloqueados = [];\nconst dudosos = [];\nsitios.forEach((s, i) => {\n  const r = respuestas[i] || {};\n  const estado = Number(r.statusCode || r.status || 0);\n  const cuerpo = r.body ?? r.data ?? '';\n  if (estado >= 500 || (!estado && r.error)) { dudosos.push(s.nombre); return; }\n  // 4xx (sin robots.txt, o no accesible): por convención se entiende que no hay restricciones.\n  if (estado >= 400) return;\n  if (!permitido(cuerpo, s.ruta)) bloqueados.push(`${s.nombre} (${s.url})`);\n});\nif (bloqueados.length) {\n  throw new Error(`Estos sitios no permiten la lectura automática según su robots.txt: ${bloqueados.join(', ')}. Quítalos de \"sitios\" en el nodo Configuración.`);\n}\nif (dudosos.length) {\n  throw new Error(`No se ha podido comprobar el robots.txt de: ${dudosos.join(', ')}. Se reintentará en la próxima pasada.`);\n}\nreturn sitios.map((s) => ({ json: s }));\n"
       }
     },
     {
@@ -225,7 +294,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1160,
+        1600,
         240
       ],
       "parameters": {
@@ -266,7 +335,7 @@
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
       "position": [
-        1380,
+        1820,
         240
       ],
       "parameters": {
@@ -276,29 +345,29 @@
           "values": [
             {
               "key": "texto",
-              "cssSelector": "={{ $json.sel.texto }}",
+              "cssSelector": "={{ $('Comprobar robots.txt').item.json.sel.texto }}",
               "returnArray": true,
               "returnValue": "text"
             },
             {
               "key": "autor",
-              "cssSelector": "={{ $json.sel.autor }}",
+              "cssSelector": "={{ $('Comprobar robots.txt').item.json.sel.autor }}",
               "returnArray": true,
               "returnValue": "text"
             },
             {
               "key": "puntuacion",
-              "cssSelector": "={{ $json.sel.puntuacion }}",
+              "cssSelector": "={{ $('Comprobar robots.txt').item.json.sel.puntuacion }}",
               "returnArray": true,
               "returnValue": "attribute",
-              "attribute": "={{ $json.sel.puntuacion_attr || 'href' }}"
+              "attribute": "={{ $('Comprobar robots.txt').item.json.sel.puntuacion_attr || 'href' }}"
             },
             {
               "key": "fecha",
-              "cssSelector": "={{ $json.sel.fecha }}",
+              "cssSelector": "={{ $('Comprobar robots.txt').item.json.sel.fecha }}",
               "returnArray": true,
               "returnValue": "attribute",
-              "attribute": "={{ $json.sel.fecha_attr || 'href' }}"
+              "attribute": "={{ $('Comprobar robots.txt').item.json.sel.fecha_attr || 'href' }}"
             }
           ]
         },
@@ -311,11 +380,50 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1600,
+        2040,
         240
       ],
       "parameters": {
-        "jsCode": "// Convierte lo que saca el nodo de extracción HTML en reseñas con la misma forma que el modo demo.\nconst cfg = $('Configuración').first().json;\nconst limpiar = (s) => String(s ?? '').replace(/\\s+/g, ' ').trim();\n// \"Valorado con 2 de 5 estrellas\" / \"2,0\" / \"★★☆☆☆\" -> 2\nconst puntuacionDe = (v) => {\n  if (v === null || v === undefined || v === '') return null;\n  const s = String(v);\n  const estrellas = (s.match(/[★●]/g) || []).length;\n  if (estrellas >= 1 && estrellas <= 5) return estrellas;\n  const m = s.match(/(\\d(?:[.,]\\d)?)\\s*(?:\\/|de\\s+|out of\\s+)?\\s*5?/);\n  if (!m) return null;\n  const n = parseFloat(m[1].replace(',', '.'));\n  return n >= 0 && n <= 5 ? Math.round(n) : null;\n};\nconst fechaDe = (v) => {\n  if (!v) return null;\n  const d = new Date(v);\n  return Number.isNaN(d.getTime()) ? null : d.toISOString();\n};\n\nconst salida = [];\nfor (const item of $input.all()) {\n  const j = item.json;\n  const nombre = j.sitio || j.nombre || 'web';\n  const textos = [].concat(j.texto || []);\n  const autores = [].concat(j.autor || []);\n  const puntos = [].concat(j.puntuacion || []);\n  const fechas = [].concat(j.fecha || []);\n  if (!textos.length) continue;\n  textos.forEach((t, i) => {\n    const texto = limpiar(t);\n    if (texto.length < 3) return;\n    salida.push({ json: {\n      sitio: nombre,\n      autor: limpiar(autores[i]) || 'anónimo',\n      puntuacion: puntuacionDe(puntos[i]),\n      fecha: fechaDe(fechas[i]) || cfg.ahora,\n      texto,\n      url: j.url || '',\n    } });\n  });\n}\nif (!salida.length) {\n  throw new Error('No se extrajo ninguna reseña: revisa los selectores CSS (la página puede haber cambiado su maquetación)');\n}\nreturn salida;\n"
+        "jsCode": "// Convierte lo que saca el nodo de extracción HTML en reseñas con la misma forma que el modo demo.\nconst cfg = $('Configuración').first().json;\nconst limpiar = (s) => String(s ?? '').replace(/\\s+/g, ' ').trim();\n// \"Valorado con 2 de 5 estrellas\" / \"2,0\" / \"★★☆☆☆\" -> 2\nconst puntuacionDe = (v) => {\n  if (v === null || v === undefined || v === '') return null;\n  const s = String(v);\n  const estrellas = (s.match(/[★●]/g) || []).length;\n  if (estrellas >= 1 && estrellas <= 5) return estrellas;\n  const m = s.match(/(\\d(?:[.,]\\d)?)\\s*(?:\\/|de\\s+|out of\\s+)?\\s*5?/);\n  if (!m) return null;\n  const n = parseFloat(m[1].replace(',', '.'));\n  return n >= 0 && n <= 5 ? Math.round(n) : null;\n};\nconst fechaDe = (v) => {\n  if (!v) return null;\n  const d = new Date(v);\n  return Number.isNaN(d.getTime()) ? null : d.toISOString();\n};\n\n// El nodo HTTP sustituye el item por la página: el nombre y la URL del sitio se recuperan\n// del nodo que decidió qué leer (mismo orden de items).\nlet sitios = [];\ntry { sitios = $('Comprobar robots.txt').all().map((i) => i.json); } catch (e) { sitios = []; }\nconst salida = [];\n$input.all().forEach((item, idx) => {\n  const j = { ...(sitios[idx] || {}), ...item.json };\n  const nombre = j.sitio || j.nombre || 'web';\n  const textos = [].concat(j.texto || []);\n  const autores = [].concat(j.autor || []);\n  const puntos = [].concat(j.puntuacion || []);\n  const fechas = [].concat(j.fecha || []);\n  if (!textos.length) return;\n  textos.forEach((t, i) => {\n    const texto = limpiar(t);\n    if (texto.length < 3) return;\n    salida.push({ json: {\n      sitio: nombre,\n      autor: limpiar(autores[i]) || 'anónimo',\n      puntuacion: puntuacionDe(puntos[i]),\n      fecha: fechaDe(fechas[i]) || cfg.ahora,\n      texto,\n      url: j.url || '',\n    } });\n  });\n});\nif (!salida.length) {\n  throw new Error('No se extrajo ninguna reseña: revisa los selectores CSS (la página puede haber cambiado su maquetación)');\n}\nreturn salida;\n"
+      }
+    },
+    {
+      "id": "aa872662-0d37-5e76-a8d7-3c0ea2e5d4dc",
+      "name": "Reseñas WooCommerce",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        940,
+        460
+      ],
+      "parameters": {
+        "url": "={{ $json.woo_url }}/wp-json/wc/v3/products/reviews?per_page=100&status=approved",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wooCommerceApi",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "id": "b66567ee-29c0-55d9-b31f-8693abe96037",
+      "name": "Normalizar WooCommerce",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        460
+      ],
+      "parameters": {
+        "jsCode": "// Reseñas de la propia tienda WooCommerce, leídas con su API oficial y la credencial del cliente.\n// El email del autor que devuelve la API no se usa ni se guarda.\nconst cfg = $('Configuración').first().json;\nconst limpiar = (s) => String(s ?? '').replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\\s+/g, ' ').trim();\nconst salida = [];\nfor (const item of $input.all()) {\n  const r = item.json;\n  if (!r || !r.id || r.status && r.status !== 'approved') continue;\n  const texto = limpiar(r.review);\n  if (!texto) continue;\n  const nota = Number(r.rating);\n  salida.push({ json: {\n    sitio: 'Tu tienda',\n    autor: limpiar(r.reviewer) || 'anónimo',\n    puntuacion: nota >= 1 && nota <= 5 ? Math.round(nota) : null,\n    fecha: r.date_created_gmt ? `${r.date_created_gmt}Z`.replace(/ZZ$/, 'Z') : (r.date_created || cfg.ahora),\n    texto: r.product_name ? `${texto} (sobre «${limpiar(r.product_name)}»)` : texto,\n    url: r.product_permalink ? `${r.product_permalink}#reviews` : `${cfg.woo_url}/wp-admin/edit.php?post_type=product&page=product-reviews`,\n  } });\n}\nif (!salida.length) throw new Error('WooCommerce no devolvió reseñas aprobadas: revisa la credencial y que la tienda tenga reseñas');\nreturn salida;\n"
       }
     },
     {
@@ -324,7 +432,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1840,
+        2280,
         140
       ],
       "parameters": {
@@ -337,7 +445,7 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
       "position": [
-        2060,
+        2500,
         140
       ],
       "parameters": {
@@ -398,7 +506,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        2300,
+        2740,
         40
       ],
       "parameters": {
@@ -431,11 +539,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2540,
+        2980,
         40
       ],
       "parameters": {
-        "jsCode": "// Aviso inmediato: ha entrado una reseña negativa y conviene contestarla hoy.\nconst d = $input.first().json;\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst VERDE = '#235b54'; const TINTA = '#35322c'; const SUAVE = '#6e6a61';\nconst REGLA = '#e7e4dc'; const PAPEL = '#f4f3ef'; const ALERTA = '#8f2f24';\nconst estrellas = (n) => (n === null || n === undefined ? '—' : '★'.repeat(n) + '☆'.repeat(5 - n));\nconst cuando = (f) => new Date(f).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });\n\nconst tarjetas = d.avisar.map((r) => `<div style=\"border-left:3px solid ${ALERTA};background:#f8eae7;padding:14px 16px;border-radius:0 8px 8px 0;margin-bottom:12px\">\n<div style=\"font-size:12px;color:${SUAVE}\">${esc(r.sitio)} · ${esc(r.autor)} · ${cuando(r.fecha)}</div>\n<div style=\"font-size:15px;color:${ALERTA};letter-spacing:2px;padding:4px 0\">${estrellas(r.puntuacion)}</div>\n<div style=\"font-size:14px;color:${TINTA};line-height:1.5\">${esc(r.texto)}</div>\n${r.url ? `<div style=\"padding-top:8px\"><a href=\"${esc(r.url)}\" style=\"font-size:13px;color:${VERDE}\">Ver y contestar</a></div>` : ''}\n</div>`).join('');\n\nconst email_html = `<!doctype html><html><body style=\"margin:0;background:${PAPEL};font-family:Arial,Helvetica,sans-serif;color:${TINTA}\">\n<table width=\"100%\" cellspacing=\"0\"><tr><td align=\"center\" style=\"padding:24px\">\n<table width=\"640\" cellspacing=\"0\" style=\"background:#fff;border-radius:12px\"><tr><td style=\"padding:28px\">\n<div style=\"font-family:Georgia,'Times New Roman',serif;font-size:22px;color:${ALERTA}\">${d.avisar.length === 1 ? 'Reseña negativa' : `${d.avisar.length} reseñas negativas`} · ${esc(d.tienda)}</div>\n<div style=\"font-size:12px;color:${SUAVE};padding:2px 0 16px;border-bottom:1px solid ${REGLA}\">${new Date(d.ahora).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })}</div>\n<p style=\"font-size:14px;color:${TINTA};margin:16px 0\">Contestar en las primeras horas es lo que más cambia la percepción de quien lee la reseña después.</p>\n${tarjetas}\n<div style=\"border-top:1px solid ${REGLA};margin-top:16px;padding-top:12px;font-size:11px;color:${SUAVE}\">Denoro Automations</div>\n</td></tr></table></td></tr></table></body></html>`;\n\nconst telegram = `⚠️ <b>${d.avisar.length === 1 ? 'Reseña negativa' : `${d.avisar.length} reseñas negativas`} · ${d.tienda}</b>\\n\\n` +\n  d.avisar.slice(0, 3).map((r) => `${estrellas(r.puntuacion)} <b>${r.sitio}</b> · ${r.autor}\\n<i>${String(r.texto).slice(0, 180)}${r.texto.length > 180 ? '…' : ''}</i>` +\n    (r.url ? `\\n<a href=\"${r.url}\">Contestar</a>` : '')).join('\\n\\n') +\n  (d.avisar.length > 3 ? `\\n\\n…y ${d.avisar.length - 3} más en el email.` : '');\n\nreturn [{ json: { ...d, asunto: `⚠️ Denoro · ${d.avisar.length} reseña(s) negativa(s) en ${d.tienda}`, email_html, telegram } }];\n"
+        "jsCode": "// Aviso inmediato: ha entrado una reseña negativa y conviene contestarla hoy.\nconst d = $input.first().json;\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst VERDE = '#235b54'; const TINTA = '#35322c'; const SUAVE = '#6e6a61';\nconst REGLA = '#e7e4dc'; const PAPEL = '#f4f3ef'; const ALERTA = '#8f2f24';\nconst estrellas = (n) => (n === null || n === undefined ? '—' : '★'.repeat(n) + '☆'.repeat(5 - n));\nconst cuando = (f) => new Date(f).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });\n\nconst tarjetas = d.avisar.map((r) => `<div style=\"border-left:3px solid ${ALERTA};background:#f8eae7;padding:14px 16px;border-radius:0 8px 8px 0;margin-bottom:12px\">\n<div style=\"font-size:12px;color:${SUAVE}\">${esc(r.sitio)} · ${esc(r.autor)} · ${cuando(r.fecha)}</div>\n<div style=\"font-size:15px;color:${ALERTA};letter-spacing:2px;padding:4px 0\">${estrellas(r.puntuacion)}</div>\n<div style=\"font-size:14px;color:${TINTA};line-height:1.5\">${esc(r.texto)}</div>\n${r.url ? `<div style=\"padding-top:8px\"><a href=\"${esc(r.url)}\" style=\"font-size:13px;color:${VERDE}\">Ver y contestar</a></div>` : ''}\n</div>`).join('');\n\nconst email_html = `<!doctype html><html><body style=\"margin:0;background:${PAPEL};font-family:Arial,Helvetica,sans-serif;color:${TINTA}\">\n<table width=\"100%\" cellspacing=\"0\"><tr><td align=\"center\" style=\"padding:24px\">\n<table width=\"640\" cellspacing=\"0\" style=\"background:#fff;border-radius:12px\"><tr><td style=\"padding:28px\">\n<div style=\"font-family:Georgia,'Times New Roman',serif;font-size:22px;color:${ALERTA}\">${d.avisar.length === 1 ? 'Reseña negativa' : `${d.avisar.length} reseñas negativas`} · ${esc(d.tienda)}</div>\n<div style=\"font-size:12px;color:${SUAVE};padding:2px 0 16px;border-bottom:1px solid ${REGLA}\">${new Date(d.ahora).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })}</div>\n<p style=\"font-size:14px;color:${TINTA};margin:16px 0\">Aquí tienes cada reseña completa y el enlace para contestarla.</p>\n${tarjetas}\n<div style=\"border-top:1px solid ${REGLA};margin-top:16px;padding-top:12px;font-size:11px;color:${SUAVE}\">Denoro Automations</div>\n</td></tr></table></td></tr></table></body></html>`;\n\nconst telegram = `⚠️ <b>${d.avisar.length === 1 ? 'Reseña negativa' : `${d.avisar.length} reseñas negativas`} · ${d.tienda}</b>\\n\\n` +\n  d.avisar.slice(0, 3).map((r) => `${estrellas(r.puntuacion)} <b>${r.sitio}</b> · ${r.autor}\\n<i>${String(r.texto).slice(0, 180)}${r.texto.length > 180 ? '…' : ''}</i>` +\n    (r.url ? `\\n<a href=\"${r.url}\">Contestar</a>` : '')).join('\\n\\n') +\n  (d.avisar.length > 3 ? `\\n\\n…y ${d.avisar.length - 3} más en el email.` : '');\n\nreturn [{ json: { ...d, asunto: `⚠️ Denoro · ${d.avisar.length} reseña(s) negativa(s) en ${d.tienda}`, email_html, telegram } }];\n"
       }
     },
     {
@@ -444,7 +552,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2300,
+        2740,
         280
       ],
       "parameters": {
@@ -457,7 +565,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        2780,
+        3220,
         100
       ],
       "parameters": {
@@ -490,7 +598,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        2780,
+        3220,
         320
       ],
       "parameters": {
@@ -523,7 +631,7 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        3020,
+        3460,
         100
       ],
       "parameters": {
@@ -546,7 +654,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3020,
+        3460,
         320
       ],
       "parameters": {
@@ -645,10 +753,61 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Reseñas WooCommerce",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reseñas WooCommerce": {
+      "main": [
+        [
+          {
+            "node": "Normalizar WooCommerce",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar WooCommerce": {
+      "main": [
+        [
+          {
+            "node": "Analizar reseñas",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Preparar sitios": {
+      "main": [
+        [
+          {
+            "node": "Descargar robots.txt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar robots.txt": {
+      "main": [
+        [
+          {
+            "node": "Comprobar robots.txt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comprobar robots.txt": {
       "main": [
         [
           {

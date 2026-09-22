@@ -1,19 +1,22 @@
 // ============ CONFIGURACIÓN DEL CLIENTE (edita solo este bloque) ============
 const CONFIG = {
   tienda: 'Tienda Demo',
-  fuente: 'demo',                 // 'demo' o 'web'
+  fuente: 'demo',                 // 'demo', 'woocommerce' o 'web'
+  woo_url: '',                    // si fuente = 'woocommerce': https://tu-tienda.com (usa su API con tu credencial)
 
-  // Con fuente = 'web': cada sitio con sus selectores CSS.
-  // Se sacan mirando la página con el inspector del navegador (clic derecho → Inspeccionar).
+  // Con fuente = 'web': páginas públicas de opiniones, cada una con sus selectores CSS
+  // (se sacan con el inspector del navegador: clic derecho → Inspeccionar).
+  // Antes de leer cada página se comprueba su robots.txt: si no permite la lectura
+  // automática, el workflow se para y lo dice. Trustpilot y Google, por ejemplo, no la permiten.
   sitios: [
     // {
-    //   nombre: 'Trustpilot',
-    //   url: 'https://es.trustpilot.com/review/tu-tienda.com',
-    //   bloque: 'article[data-service-review-card-paper]',
-    //   texto: 'p[data-service-review-text-typography]',
-    //   puntuacion: 'div[data-service-review-rating] img',
-    //   puntuacion_attr: 'alt',
-    //   autor: 'span[data-consumer-name-typography]',
+    //   nombre: 'Opiniones de mi web',
+    //   url: 'https://mi-tienda.com/opiniones',
+    //   bloque: '.opinion',
+    //   texto: '.opinion-texto',
+    //   puntuacion: '.opinion-estrellas',
+    //   puntuacion_attr: 'data-nota',
+    //   autor: '.opinion-autor',
     //   fecha: 'time',
     //   fecha_attr: 'datetime',
     // },
@@ -28,7 +31,10 @@ const CONFIG = {
   telegram_chat_id: 'TU_CHAT_ID',
 };
 // ============================================================================
-if (!['demo', 'web'].includes(CONFIG.fuente)) throw new Error(`fuente "${CONFIG.fuente}" no válida: usa demo o web`);
+if (!['demo', 'woocommerce', 'web'].includes(CONFIG.fuente)) throw new Error(`fuente "${CONFIG.fuente}" no válida: usa demo, woocommerce o web`);
+if (CONFIG.fuente === 'woocommerce' && !/^https?:\/\/[^/]+/i.test(String(CONFIG.woo_url || ''))) {
+  throw new Error('Con fuente = woocommerce hace falta woo_url: la dirección de la tienda (https://tu-tienda.com)');
+}
 if (CONFIG.fuente === 'web') {
   if (!Array.isArray(CONFIG.sitios) || !CONFIG.sitios.length) {
     throw new Error('Con fuente = web hay que definir al menos un sitio en "sitios"');
@@ -60,6 +66,7 @@ const modo = $input.first().json.modo === 'resumen' ? 'resumen' : 'vigilancia';
 return [{ json: {
   ...CONFIG,
   modo,
+  woo_url: String(CONFIG.woo_url || '').replace(/\/+$/, ''),
   enviar_email: Boolean(CONFIG.email_to),
   enviar_telegram: Boolean(CONFIG.telegram_chat_id),
   ahora: new Date().toISOString(),

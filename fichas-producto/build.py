@@ -107,7 +107,7 @@ def fichas():
         ("Revisar y montar CSV", "¿Email activo?"), ("Revisar y montar CSV", "¿Telegram activo?"),
         ("¿Email activo?", "Enviar email", 0), ("¿Telegram activo?", "Enviar a Telegram", 0),
     )
-    return c.workflow("Denoro — Fichas de producto con IA", nodes, conns)
+    return c.workflow("Denoro — Fichas de producto", nodes, conns)
 
 
 if __name__ == "__main__":

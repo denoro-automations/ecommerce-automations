@@ -197,6 +197,7 @@ const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
   igual(ia[1].json.ficha.bullets.length, 3, 'lee el JSON aunque venga en un bloque de código');
   igual(ia[2].json.ficha, null, 'una respuesta rota no tumba la ejecución');
   ok(ia[2].json.fallo.includes(preparado[2].json.sku));
+  ok(ia[2].json.fallo.includes('timeout'), 'el fallo cuenta el error real de la API, no uno genérico');
   const conFallo = await runCode('salida.js', { input: ia, nodes: nodos });
   igual(conFallo[0].json.resumen.sin_ficha, 1);
   igual(conFallo[0].json.resumen.escritas, 2);

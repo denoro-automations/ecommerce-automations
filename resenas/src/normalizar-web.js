@@ -18,15 +18,19 @@ const fechaDe = (v) => {
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 };
 
+// El nodo HTTP sustituye el item por la página: el nombre y la URL del sitio se recuperan
+// del nodo que decidió qué leer (mismo orden de items).
+let sitios = [];
+try { sitios = $('Comprobar robots.txt').all().map((i) => i.json); } catch (e) { sitios = []; }
 const salida = [];
-for (const item of $input.all()) {
-  const j = item.json;
+$input.all().forEach((item, idx) => {
+  const j = { ...(sitios[idx] || {}), ...item.json };
   const nombre = j.sitio || j.nombre || 'web';
   const textos = [].concat(j.texto || []);
   const autores = [].concat(j.autor || []);
   const puntos = [].concat(j.puntuacion || []);
   const fechas = [].concat(j.fecha || []);
-  if (!textos.length) continue;
+  if (!textos.length) return;
   textos.forEach((t, i) => {
     const texto = limpiar(t);
     if (texto.length < 3) return;
@@ -39,7 +43,7 @@ for (const item of $input.all()) {
       url: j.url || '',
     } });
   });
-}
+});
 if (!salida.length) {
   throw new Error('No se extrajo ninguna reseña: revisa los selectores CSS (la página puede haber cambiado su maquetación)');
 }

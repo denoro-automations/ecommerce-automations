@@ -9,7 +9,7 @@ const REAL = [
   ["email_from: 'resenas@tu-dominio.com'", "email_from: 'resenas@denoro.test'"],
 ];
 const con = (...cambios) => [...REAL, ...cambios];
-const SITIO = ["sitios: [", "sitios: [{ nombre: 'Trustpilot', url: 'https://x.test/r', bloque: 'article', texto: 'p' },"];
+const SITIO = ["sitios: [", "sitios: [{ nombre: 'Opiniones', url: 'https://x.test/r', bloque: 'article', texto: 'p' },"];
 const entrada = (modo) => [{ json: { modo } }];
 let hechas = 0;
 const ok = (cond, msg) => { assert.ok(cond, msg); hechas++; };
@@ -61,9 +61,9 @@ const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
   igual(a.resumen.temas[0].tema, 'Plazos de envío', 'agrupa las quejas por tema');
   ok(a.resumen.temas.some((t) => t.tema === 'Atención al cliente'));
   igual(a.resumen.estrellas.find((e) => e.estrellas === 5).total, 3);
-  assert.deepStrictEqual(a.resumen.por_sitio, { Trustpilot: 5, Google: 3 }); hechas++;
+  assert.deepStrictEqual(a.resumen.por_sitio, { 'Tu tienda': 5, 'Web de opiniones': 3 }); hechas++;
   igual(a.resumen.tendencia, null, 'sin semana anterior no hay tendencia');
-  ok(est.vistas.Trustpilot.length === 7 && est.vistas.Google.length === 5, 'guarda lo ya visto');
+  ok(est.vistas['Tu tienda'].length === 7 && est.vistas['Web de opiniones'].length === 5, 'guarda lo ya visto');
 
   // segunda pasada: nada nuevo
   const an2 = await runCode('analizar.js', { input: demo, nodes: n, staticData: est });
@@ -71,7 +71,7 @@ const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
   igual(an2[0].json.hay_avisos, false, 'no repite avisos de reseñas ya vistas');
 
   // llega una nueva reseña mala
-  const conNueva = [...demo, { json: { sitio: 'Google', autor: 'Tomás', puntuacion: 1, fecha: new Date().toISOString(),
+  const conNueva = [...demo, { json: { sitio: 'Web de opiniones', autor: 'Tomás', puntuacion: 1, fecha: new Date().toISOString(),
     texto: 'Pedido nunca llegó y nadie contesta.', url: 'https://r.test/tomas' } }];
   const an3 = await runCode('analizar.js', { input: conNueva, nodes: n, staticData: est });
   igual(an3[0].json.avisar.length, 1);
@@ -119,9 +119,10 @@ const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
   ok(aj.email_html.includes('Denoro Automations'));
   ok(!/#1f5fd1|#2563eb/.test(aj.email_html), 'sin restos de la paleta azul antigua');
   ok(aj.email_html.includes('★☆☆☆☆'), 'pinta las estrellas');
-  ok(aj.email_html.includes('Lucía') && aj.email_html.includes('Contestar'));
+  ok(aj.email_html.includes('Lucía') && aj.email_html.includes('Ver y contestar'), 'cada reseña con su enlace para contestar');
   ok(aj.asunto.includes('4 reseña'));
-  ok(aj.telegram.includes('Trustpilot'));
+  ok(aj.telegram.includes('Tu tienda'));
+  ok(!/Trustpilot|Google/.test(JSON.stringify(demo)), 'la demo no usa marcas de terceros');
   const una = await runCode('aviso.js', { input: [{ json: { ...a, avisar: [a.avisar[0]] } }], nodes: n });
   ok(una[0].json.email_html.includes('Reseña negativa ·'), 'singular cuando solo hay una');
 
@@ -147,7 +148,7 @@ const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
   igual(sitios[0].json.sel.bloque, 'article');
 
   const web = await runCode('normalizar-web.js', {
-    input: [{ json: { sitio: 'Trustpilot', url: 'https://x.test/r',
+    input: [{ json: { sitio: 'Opiniones', url: 'https://x.test/r',
       texto: ['  Muy buen servicio  ', 'Tardó mucho'],
       autor: ['Ana', ''],
       puntuacion: ['Valorado con 5 de 5 estrellas', '★★☆☆☆'],
@@ -162,6 +163,58 @@ const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
   ok(web[1].json.fecha === cfg[0].json.ahora, 'una fecha ilegible no tumba la reseña');
   await assert.rejects(runCode('normalizar-web.js', { input: [{ json: { sitio: 'X', texto: [] } }], nodes: n }),
     /selectores CSS/); hechas++;
+
+
+  // ---------- robots.txt ----------
+  const sitioCfg = await runCode('config.js', { input: entrada('vigilancia'), replace: con(["fuente: 'demo'", "fuente: 'web'"],
+    ["sitios: [", "sitios: [{ nombre: 'Trustpilot', url: 'https://es.trustpilot.com/review/tienda.es', bloque: 'article', texto: 'p' }, { nombre: 'Mi web', url: 'https://mi-tienda.test/opiniones?p=1', bloque: 'li', texto: 'p' },"]) });
+  const prepSitios = await runCode('preparar-sitios.js', { nodes: { 'Configuración': sitioCfg } });
+  igual(prepSitios[0].json.robots_url, 'https://es.trustpilot.com/robots.txt');
+  igual(prepSitios[0].json.ruta, '/review/tienda.es');
+  igual(prepSitios[1].json.ruta, '/opiniones?p=1');
+  const robots = (respuestas) => runCode('comprobar-robots.js', { input: respuestas.map((r) => ({ json: r })), nodes: { 'Configuración': sitioCfg, 'Preparar sitios': prepSitios } });
+  // lo que publica Trustpilot: bots genéricos fuera, salvo excepciones
+  const trustpilot = 'User-agent: Googlebot\nAllow: /review/\n\nUser-agent: *\nDisallow: /review/*/transparency\nDisallow: /';
+  await assert.rejects(robots([{ statusCode: 200, body: trustpilot }, { statusCode: 404, body: '' }]), /no permiten.*Trustpilot/); hechas++;
+  const libre = await robots([{ statusCode: 200, body: 'User-agent: *\nDisallow: /admin/' }, { statusCode: 404, body: '' }]);
+  igual(libre.length, 2, 'si robots.txt lo permite, pasan los dos sitios');
+  igual(libre[0].json.sel.texto, 'p', 'y siguen llevando sus selectores');
+  await assert.rejects(robots([{ statusCode: 200, body: 'User-agent: *\nDisallow: /review/' }, { statusCode: 200, body: '' }]), /no permiten/); hechas++;
+  const excepcion = await robots([{ statusCode: 200, body: 'User-agent: *\nDisallow: /\n\nUser-agent: DenoroBot\nAllow: /review/' }, { statusCode: 404 }]);
+  igual(excepcion.length, 2, 'un grupo propio para este bot manda sobre el de *');
+  const masLarga = await robots([{ statusCode: 200, body: 'User-agent: *\nDisallow: /review\nAllow: /review/tienda.es$' }, { statusCode: 404 }]);
+  igual(masLarga.length, 2, 'la regla más específica gana');
+  await assert.rejects(robots([{ statusCode: 503, body: '' }, { statusCode: 404 }]), /No se ha podido comprobar/); hechas++;
+  await assert.rejects(robots([{ error: { message: 'ECONNREFUSED' } }, { statusCode: 404 }]), /No se ha podido comprobar/); hechas++;
+  await assert.rejects(robots([{ statusCode: 404 }, { statusCode: 200, body: 'User-agent: *\nDisallow: /opiniones' }]), /Mi web/); hechas++;
+
+  // ---------- el nodo HTTP pisa el item: el nombre del sitio se recupera del nodo anterior ----------
+  const trasHttp = await runCode('normalizar-web.js', {
+    input: [{ json: { texto: ['Muy bien'], puntuacion: ['5'] } }],
+    nodes: { 'Configuración': cfg, 'Comprobar robots.txt': [{ json: { nombre: 'Mi web', url: 'https://mi-tienda.test/opiniones' } }] },
+  });
+  igual(trasHttp[0].json.sitio, 'Mi web');
+  igual(trasHttp[0].json.url, 'https://mi-tienda.test/opiniones');
+
+  // ---------- WooCommerce ----------
+  await assert.rejects(runCode('config.js', { input: entrada('vigilancia'), replace: con(["fuente: 'demo'", "fuente: 'woocommerce'"]) }), /woo_url/); hechas++;
+  const cfgWoo = await runCode('config.js', { input: entrada('vigilancia'), replace: con(["fuente: 'demo'", "fuente: 'woocommerce'"], ["woo_url: ''", "woo_url: 'https://mi-tienda.test/'"]) });
+  igual(cfgWoo[0].json.woo_url, 'https://mi-tienda.test', 'quita la barra final');
+  const woo = await runCode('normalizar-woo.js', {
+    input: [
+      { json: { id: 1, status: 'approved', reviewer: 'Ana', reviewer_email: 'ana@correo.test', rating: 2, review: '<p>Llegó <b>roto</b></p>', date_created_gmt: '2026-09-20T10:00:00', product_name: 'Taza', product_permalink: 'https://mi-tienda.test/taza' } },
+      { json: { id: 2, status: 'hold', reviewer: 'Spam', rating: 5, review: 'x' } },
+      { json: { id: 3, status: 'approved', reviewer: '', rating: 5, review: '<p>Perfecta</p>', date_created: '2026-09-19T08:00:00' } },
+    ],
+    nodes: { 'Configuración': cfgWoo },
+  });
+  igual(woo.length, 2, 'solo reseñas aprobadas');
+  igual(woo[0].json.puntuacion, 2);
+  igual(woo[0].json.texto, 'Llegó roto (sobre «Taza»)');
+  igual(woo[0].json.fecha, '2026-09-20T10:00:00Z');
+  ok(!JSON.stringify(woo).includes('ana@correo.test'), 'el email del autor no se guarda');
+  igual(woo[1].json.autor, 'anónimo');
+  await assert.rejects(runCode('normalizar-woo.js', { input: [], nodes: { 'Configuración': cfgWoo } }), /no devolvió/); hechas++;
 
   console.log(`resenas: ${hechas} comprobaciones OK`);
 })().catch((e) => { console.error('FALLO:', e.message); process.exit(1); });

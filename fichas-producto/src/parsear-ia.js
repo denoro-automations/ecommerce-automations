@@ -28,6 +28,14 @@ entradas.forEach((item, i) => {
   const base = preparados[i] || preparados[0] || {};
   if (base.sin_trabajo) { salida.push({ json: base }); return; }
   const p = base.producto || {};
+  // Si la API respondió con un error (clave no válida, sin saldo, límite de uso…), se dice tal cual.
+  const errorApi = item.json && (item.json.error || item.json.errorMessage);
+  if (errorApi) {
+    const msg = typeof errorApi === 'object' ? (errorApi.description || errorApi.message || JSON.stringify(errorApi)) : String(errorApi);
+    salida.push({ json: { ...base, motor: cfg.motor, ficha: null,
+      fallo: `La API de IA devolvió un error para ${p.sku || base.sku}: ${msg.slice(0, 160)}` } });
+    return;
+  }
   const crudo = texto(item.json);
   const j = extraerJson(crudo);
   if (!j || !j.titulo_seo) {

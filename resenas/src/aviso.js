@@ -18,7 +18,7 @@ const email_html = `<!doctype html><html><body style="margin:0;background:${PAPE
 <table width="640" cellspacing="0" style="background:#fff;border-radius:12px"><tr><td style="padding:28px">
 <div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:${ALERTA}">${d.avisar.length === 1 ? 'Reseña negativa' : `${d.avisar.length} reseñas negativas`} · ${esc(d.tienda)}</div>
 <div style="font-size:12px;color:${SUAVE};padding:2px 0 16px;border-bottom:1px solid ${REGLA}">${new Date(d.ahora).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })}</div>
-<p style="font-size:14px;color:${TINTA};margin:16px 0">Contestar en las primeras horas es lo que más cambia la percepción de quien lee la reseña después.</p>
+<p style="font-size:14px;color:${TINTA};margin:16px 0">Aquí tienes cada reseña completa y el enlace para contestarla.</p>
 ${tarjetas}
 <div style="border-top:1px solid ${REGLA};margin-top:16px;padding-top:12px;font-size:11px;color:${SUAVE}">Denoro Automations</div>
 </td></tr></table></td></tr></table></body></html>`;
