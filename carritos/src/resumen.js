@@ -52,4 +52,6 @@ const telegram = `🛒 <b>Carritos · ${d.tienda}</b>\n` +
   (ej.fallidos.length ? `⚠️ ${ej.fallidos.length} no salieron\n` : '') +
   `<i>Total desde el inicio: ${ej.historico.recuperados || 0} recuperados, ${dinero(ej.historico.valor_recuperado)}</i>`;
 
-return [{ json: { ...d, asunto: `Denoro · Carritos de ${d.tienda}: ${ej.enviados.length} avisos${d.recuperados.length ? `, ${d.recuperados.length} recuperados` : ''}`, email_html, telegram, ejecucion: ej } }];
+// Sin avisos, recuperados ni fallos no hay nada que contar: no se manda nada (corre cada 30 minutos).
+const hayAlgo = Boolean(ej.enviados.length || d.recuperados.length || ej.fallidos.length);
+return [{ json: { ...d, enviar_email: Boolean(d.enviar_email && hayAlgo), enviar_telegram: Boolean(d.enviar_telegram && hayAlgo), hay_algo: hayAlgo, asunto: `Denoro · Carritos de ${d.tienda}: ${ej.enviados.length} avisos${d.recuperados.length ? `, ${d.recuperados.length} recuperados` : ''}`, email_html, telegram, ejecucion: ej } }];

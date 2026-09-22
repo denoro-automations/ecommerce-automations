@@ -58,8 +58,10 @@ const lineas = [cabecera.join(';'), ...d.facturas.map((f) => [
   enviadas.has(f.numero) ? 'enviada' : (f.enviar ? 'no enviada' : 'sin email'),
 ].map(celda).join(';'))];
 
+// Si en esta pasada no se ha facturado nada, no se manda resumen (corre cada hora).
+const hayAlgo = d.facturas.length > 0;
 return [{
-  json: { ...d, asunto: `Denoro · ${r.emitidas} factura(s) de ${d.emisor.nombre}${r.emitidas ? ` · ${dinero(r.total)}` : ''}`,
+  json: { ...d, enviar_email: Boolean(d.enviar_email && hayAlgo), enviar_telegram: Boolean(d.enviar_telegram && hayAlgo), hay_algo: hayAlgo, asunto: `Denoro · ${r.emitidas} factura(s) de ${d.emisor.nombre}${r.emitidas ? ` · ${dinero(r.total)}` : ''}`,
     email_html, telegram, ejecucion: ej },
   binary: d.facturas.length ? { libro: {
     data: Buffer.from('﻿' + lineas.join('\n'), 'utf8').toString('base64'),

@@ -37,7 +37,8 @@ Lo firma **la tienda**, no Denoro: nombre, web, color de marca y remitente del d
 (importante para no acabar en spam). Lleva las líneas del carrito con su total, el botón de vuelta
 al checkout y, si el paso lo define, un código de descuento. El texto cambia según el paso.
 
-El resumen que llega al dueño sí va con la marca Denoro.
+El resumen que llega al dueño sí va con la marca Denoro, y solo sale cuando hay algo que contar
+(avisos enviados, carritos recuperados o envíos fallidos): no llega un mensaje vacío cada media hora.
 
 ## De dónde saca los carritos
 
@@ -63,5 +64,5 @@ al cliente a cambiar lo que ya tiene.
 
 ```bash
 python3 carritos/build.py                  # regenera el workflow
-node carritos/test/test_carritos.js        # 63 comprobaciones
+node carritos/test/test_carritos.js        # 65 comprobaciones
 ```

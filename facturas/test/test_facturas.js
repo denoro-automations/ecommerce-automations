@@ -190,6 +190,8 @@ const cerca = (a, b, msg) => { assert.ok(Math.abs(a - b) < 0.001, `${msg}: ${a} 
   });
   ok(vacio[0].json.email_html.includes('No había pedidos nuevos'), 'la pasada sin trabajo no falla');
   assert.deepStrictEqual(vacio[0].binary, {}); hechas++;
+  ok(g.hay_algo === true && g.enviar_email === Boolean(n['Configuración'][0].json.enviar_email), 'con facturas, el resumen sale');
+  ok(vacio[0].json.enviar_email === false && vacio[0].json.enviar_telegram === false, 'sin facturas nuevas no manda nada cada hora');
 
   // ---------- normalizadores ----------
   const shop = await runCode('normalizar-shopify.js', {

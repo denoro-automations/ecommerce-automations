@@ -52,7 +52,8 @@ la factura se envía en HTML y el resumen lo avisa, antes que no mandar nada.
 5. *Settings → Error workflow*: **Denoro — Avisos de error**.
 6. Pruébalo con `fuente: 'demo'` y mira el PDF antes de apuntar a la tienda.
 
-Corre cada hora y también a mano con **Facturar ahora**.
+Corre cada hora y también a mano con **Facturar ahora**. El resumen al dueño solo sale en las pasadas
+que emiten alguna factura.
 
 ## Aviso: Verifactu y asesoría
 
@@ -67,5 +68,5 @@ responsable de sus obligaciones fiscales, de los tipos que aplica y de conservar
 
 ```bash
 python3 facturas/build.py                  # regenera el workflow
-node facturas/test/test_facturas.js        # 481 comprobaciones
+node facturas/test/test_facturas.js        # 483 comprobaciones
 ```

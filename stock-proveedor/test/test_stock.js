@@ -193,6 +193,10 @@ const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
   });
   ok(infAplicado[0].json.email_html.includes('6 cambios aplicados y 1 con error'));
   ok(Buffer.from(infAplicado[0].binary.cambios.data, 'base64').toString('utf8').includes('ERROR'));
+  ok(ij.hay_algo === true && infBloqueado[0].json.hay_algo === true, 'con cambios o bloqueo, el parte sale');
+  const quieto = { ...comp[0].json, bloqueado: false, cambios: [], precios: [], resumen: { ...comp[0].json.resumen, cambios: 0, cambios_precio: 0 } };
+  const infQuieto = await runCode('informe.js', { input: [{ json: { aplicado: false, aplicados: [], fallidos: [] } }], nodes: { ...n, 'Comparar con la tienda': [{ json: quieto }] } });
+  ok(infQuieto[0].json.enviar_email === false && infQuieto[0].json.enviar_telegram === false, 'sin cambios no manda nada cada 4 horas');
 
   console.log(`stock-proveedor: ${hechas} comprobaciones OK`);
 })().catch((e) => { console.error('FALLO:', e.message); process.exit(1); });

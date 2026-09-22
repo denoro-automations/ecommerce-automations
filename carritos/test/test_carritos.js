@@ -127,6 +127,8 @@ const igual = (a, b, msg) => { assert.strictEqual(a, b, msg); hechas++; };
     nodes: { ...n, 'Decidir a quién escribo': [{ json: { ...dec[0].json, envios: [], recuperados: [], resumen: { ...dec[0].json.resumen, avisos: 0, valor_en_juego: 0, valor_recuperado: 0 } } }] },
   });
   ok(vacio[0].json.email_html.includes('Ningún carrito'), 'la pasada sin trabajo no falla');
+  ok(rj.hay_algo === true && rj.enviar_email === Boolean(n['Configuración'][0].json.enviar_email), 'con avisos, el resumen sale');
+  ok(vacio[0].json.enviar_email === false && vacio[0].json.enviar_telegram === false, 'sin avisos ni recuperados no manda nada cada media hora');
 
   // ---------- normalizadores ----------
   const shop = await runCode('normalizar-shopify.js', {

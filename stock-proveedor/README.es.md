@@ -1,8 +1,8 @@
 # Stock del proveedor → tienda
 
 Lee el feed del proveedor (CSV o XML), lo compara con el catálogo de la tienda y ajusta
-las existencias. Manda un parte con todo lo que ha cambiado y **se bloquea solo** si el feed
-llega mal, que es el accidente caro de esta automatización.
+las existencias. Manda un parte con todo lo que ha cambiado (si no ha cambiado nada, no manda nada)
+y **se bloquea solo** si el feed llega mal, que es el accidente caro de esta automatización.
 
 ## Qué resuelve
 
@@ -66,5 +66,5 @@ Corre cada 4 horas y también a mano con **Sincronizar ahora**.
 
 ```bash
 python3 stock-proveedor/build.py          # regenera el workflow
-node stock-proveedor/test/test_stock.js   # 79 comprobaciones
+node stock-proveedor/test/test_stock.js   # 81 comprobaciones
 ```

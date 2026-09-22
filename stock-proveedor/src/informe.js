@@ -87,9 +87,14 @@ for (const x of c.nuevos) lineas.push(['alta nueva', x.sku, x.titulo, '', x.stoc
 for (const x of c.descatalogados) lineas.push(['sin feed', x.sku, x.titulo, x.stock, '', 'informativo'].map(celda).join(';'));
 for (const x of ejecucion.fallidos) lineas.push(['error', x.sku, x.titulo, x.antes, x.despues, x.error].map(celda).join(';'));
 
+// Sin cambios de stock ni de precio, sin bloqueo y sin fallos no hay nada que contar: no se manda nada.
+const hayAlgo = Boolean(c.bloqueado || r.cambios || r.cambios_precio || (ejecucion.fallidos || []).length);
 return [{
   json: {
     ...c,
+    enviar_email: Boolean(c.enviar_email && hayAlgo),
+    enviar_telegram: Boolean(c.enviar_telegram && hayAlgo),
+    hay_algo: hayAlgo,
     asunto: c.bloqueado
       ? `⛔ Denoro · Stock de ${c.tienda}: feed bloqueado`
       : `Denoro · Stock de ${c.tienda}: ${r.cambios} cambios${c.modo_prueba ? ' (prueba)' : ''}`,
