@@ -267,7 +267,7 @@
           "parameters": [
             {
               "name": "User-Agent",
-              "value": "Mozilla/5.0 (compatible; DenoroBot/1.0; +https://denoro-automations.github.io/)"
+              "value": "Mozilla/5.0 (compatible; DenoroBot/1.0; +https://denoroautomations.com/)"
             }
           ]
         }
@@ -316,7 +316,7 @@
           "parameters": [
             {
               "name": "User-Agent",
-              "value": "Mozilla/5.0 (compatible; DenoroBot/1.0; +https://denoro-automations.github.io/)"
+              "value": "Mozilla/5.0 (compatible; DenoroBot/1.0; +https://denoroautomations.com/)"
             },
             {
               "name": "Accept-Language",

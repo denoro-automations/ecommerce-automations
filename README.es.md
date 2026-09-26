@@ -63,7 +63,7 @@ docker run -d -p 3000:3000 --name gotenberg gotenberg/gotenberg:8
 
 ## Licencia y aviso
 
-Código de ejemplo y portfolio de [Denoro Automations](https://denoro-automations.github.io/).
+Código de ejemplo y portfolio de [Denoro Automations](https://denoroautomations.com/).
 Las automatizaciones que tocan datos de clientes (carritos, facturas) llevan avisos sobre
 consentimiento y obligaciones fiscales en su propio README: conviene leerlos antes de ponerlas
 en producción.

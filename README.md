@@ -69,5 +69,5 @@ docker run -d -p 3000:3000 --name gotenberg gotenberg/gotenberg:8
 
 ## About
 
-Portfolio and working code by [Denoro Automations](https://denoro-automations.github.io/) —
+Portfolio and working code by [Denoro Automations](https://denoroautomations.com/) —
 n8n automation and web scraping for online shops.

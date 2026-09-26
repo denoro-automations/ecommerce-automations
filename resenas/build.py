@@ -63,7 +63,7 @@ def resenas():
                         "timeout": 20000},
             "sendHeaders": True,
             "headerParameters": {"parameters": [
-                {"name": "User-Agent", "value": "Mozilla/5.0 (compatible; DenoroBot/1.0; +https://denoro-automations.github.io/)"}]}},
+                {"name": "User-Agent", "value": "Mozilla/5.0 (compatible; DenoroBot/1.0; +https://denoroautomations.com/)"}]}},
             onError="continueRegularOutput", alwaysOutputData=True),
         node("Comprobar robots.txt", "n8n-nodes-base.code", 2, [1380, 240], {"jsCode": js("comprobar-robots.js")}),
         node("Descargar página", "n8n-nodes-base.httpRequest", 4.2, [1600, 240], {
@@ -72,7 +72,7 @@ def resenas():
                         "timeout": 30000, "redirect": {"redirect": {}}},
             "sendHeaders": True,
             "headerParameters": {"parameters": [
-                {"name": "User-Agent", "value": "Mozilla/5.0 (compatible; DenoroBot/1.0; +https://denoro-automations.github.io/)"},
+                {"name": "User-Agent", "value": "Mozilla/5.0 (compatible; DenoroBot/1.0; +https://denoroautomations.com/)"},
                 {"name": "Accept-Language", "value": "es-ES,es;q=0.9"}]}},
             retryOnFail=True, maxTries=3, waitBetweenTries=10000),
         node("Extraer reseñas", "n8n-nodes-base.html", 1.2, [1820, 240], {
